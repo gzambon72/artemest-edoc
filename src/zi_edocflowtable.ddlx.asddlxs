@@ -1,0 +1,51 @@
+@Metadata.layer: #CUSTOMER
+@UI: {
+  headerInfo: {
+    typeName: 'EdocFlowTable', 
+    typeNamePlural: 'EdocFlowTables', 
+    title: {
+      type: #STANDARD, 
+      label: 'Edoc Flow Table', 
+      value: 'Edocgroup'
+    }
+  }
+}
+annotate view ZI_EdocFlowTable with
+{
+  @UI.identification: [ {
+    position: 1 
+  } ]
+  @UI.lineItem: [ {
+    position: 1 
+  }, 
+  {
+    type: #FOR_ACTION, 
+    dataAction: 'CopyEdocFlowTable', 
+    label: 'Copy Selected Entry', 
+    invocationGrouping: #CHANGE_SET
+  } ]
+  @UI.facet: [ {
+    id: 'ZI_EdocFlowTable', 
+    purpose: #STANDARD, 
+    type: #IDENTIFICATION_REFERENCE, 
+    label: 'Edoc Flow Table', 
+    position: 1 
+  } ]
+  Edocgroup;
+  
+  @UI.identification: [ {
+    position: 2 
+  } ]
+  @UI.lineItem: [ {
+    position: 2 
+  } ]
+  Edocflow;
+  
+  @UI.identification: [ {
+    position: 3 
+  } ]
+  @UI.lineItem: [ {
+    position: 3 
+  } ]
+  Edocflowdescr;
+}

@@ -1,0 +1,5 @@
+@ObjectModel.leadingEntity.name: 'ZI_EdocFlowTable_S'
+define service ZUI_EDOCFLOWTABLE {
+  expose ZI_EDOCFLOWTABLE_S as EdocFlowTableAll;
+  expose ZI_EDOCFLOWTABLE as EdocFlowTable;
+}

@@ -1,0 +1,20 @@
+unmanaged implementation in class zCL_edoc_view_bhv unique;
+
+define behavior for ZCDS_EDOC_VIEW2 alias ElectronicDocument
+lock master
+authorization master ( instance )
+{
+  // Field Controls
+  field ( readonly ) edocgroup, edocflow, unique_value,
+  ernam, erdat, erzet, tmstp;
+  field ( mandatory ) bukrs;
+
+  // Actions
+  action ( features : instance ) pdf_display result [1] $self;
+  action ( features : instance ) xml_display result [1] $self;
+  action ( features : instance ) document_post result [1] $self;
+  action ( features : instance ) fileupload result [1] $self;
+  // Azione statica per l'upload
+  static action uploadXML result [1] $self;
+
+}

@@ -1,0 +1,32 @@
+managed implementation in class ZBP_R_OE_EDOCFILE unique;
+strict ( 2 );
+define behavior for ZR_OE_EDOCFILE alias EdocFile
+persistent table ZOE_EDOCFILE
+lock master
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   FileGuid;
+
+  field ( readonly : update )
+   FileGuid;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for ZOE_EDOCFILE
+  {
+    FileGuid = file_guid;
+    ZuniqueValue = zunique_value;
+    SeqNo = seq_no;
+    Filename = filename;
+    Mimetypexml = mimetypexml;
+    Xmldata = xmldata;
+    Mimetypepdf = mimetypepdf;
+    Pdfdata = pdfdata;
+    FileRaw = file_raw;
+  }
+}

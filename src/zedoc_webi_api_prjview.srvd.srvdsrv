@@ -1,0 +1,4 @@
+@EndUserText.label: 'ElectronicDocument WEB Odata V2'
+define service ZEDOC_WEBI_API_PRJVIEW {
+  expose ZCDS_EDOC_VIEW_PROJ as ElectronicDocument;
+}

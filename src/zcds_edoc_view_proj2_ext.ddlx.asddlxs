@@ -1,0 +1,31 @@
+@Metadata.layer: #CORE
+annotate entity ZCDS_EDOC_VIEW_PROJ2 with
+{
+  @UI.facet: [    {
+              label: 'General Information',
+              id: 'GeneralInfo',
+              type: #COLLECTION,
+              position: 10
+              },
+                   { id:            'Invoicedet',
+                  purpose:       #STANDARD,
+                  type:          #IDENTIFICATION_REFERENCE,
+                  label:         'Invoice Details',
+                  parentId: 'GeneralInfo',
+                  position:      10 },
+                {
+                    id: 'Upload',
+                    purpose: #STANDARD,
+                    type: #FIELDGROUP_REFERENCE,
+                    parentId: 'GeneralInfo',
+                    label: 'Upload Invoice',
+                    position: 20,
+                    targetQualifier: 'Upload'
+                } ]
+ 
+
+  @UI.hidden: true
+  mimetype;
+  
+
+}

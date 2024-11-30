@@ -1,0 +1,12 @@
+projection;
+//strict ( 2 ); //Uncomment this line in order to enable strict mode 2. The strict mode has two variants (strict(1), strict(2)) and is prerequisite to be future proof regarding syntax and to be able to release your BO.
+
+define behavior for ZCDS_EDOC_VIEW_PROJ2 //alias <alias_name>
+{
+
+  use action pdf_display;
+  use action xml_display;
+  use action document_post;
+  use action fileupload;
+  use action uploadXML;
+}

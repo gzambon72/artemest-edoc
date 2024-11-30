@@ -1,0 +1,9 @@
+projection implementation in class ZBP_C_OE_EDOCFILE unique;
+strict ( 2 );
+define behavior for ZC_OE_EDOCFILE alias EdocFile
+
+{
+  use create;
+  use update;
+  use delete;
+}

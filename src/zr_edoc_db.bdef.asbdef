@@ -1,0 +1,50 @@
+managed implementation in class ZBP_R_EDOC_DB unique;
+strict ( 2 );
+define behavior for ZR_EDOC_DB alias Edocument
+persistent table ZEDOC_DB
+etag master LastChanged
+lock master
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   Edocflow,
+   UniqueValue;
+
+  field ( readonly )
+   CreatedBy,
+   Lastchangedby,
+   LocalLastChanged,
+   LastChanged;
+
+  field ( readonly : update )
+   Edocflow,
+   UniqueValue;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for ZEDOC_DB
+  {
+    Edocflow = edocflow;
+    UniqueValue = unique_value;
+    Xdata = xdata;
+    Filename = filename;
+    Mimetypexml = mimetypexml;
+    Xmldata = xmldata;
+    Mimetypepdf = mimetypepdf;
+    Pdfdata = pdfdata;
+    CreatedOn = created_on;
+    CreationUser = creation_user;
+    CreatedBy = created_by;
+    Lastchangedby = lastchangedby;
+    LocalLastChanged = local_last_changed;
+    LastChanged = last_changed;
+    Ernam = ernam;
+    Erdat = erdat;
+    Erzet = erzet;
+    Tmstp = tmstp;
+  }
+}
