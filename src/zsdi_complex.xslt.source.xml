@@ -1,0 +1,144 @@
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+               xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2"
+               version="1.0">
+  <xsl:template match="/">
+    <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+      <asx:values>
+        <FATTURA>
+          <!-- Sezione Testata -->
+          <TESTATA>
+            <ID_PAESE>
+              <xsl:value-of select="//DatiTrasmissione/IdTrasmittente/IdPaese"/>
+            </ID_PAESE>
+            <ID_CODICE>
+              <xsl:value-of select="//DatiTrasmissione/IdTrasmittente/IdCodice"/>
+            </ID_CODICE>
+            <PROGRESSIVO_INVIO>
+              <xsl:value-of select="//DatiTrasmissione/ProgressivoInvio"/>
+            </PROGRESSIVO_INVIO>
+            <FORMATO_TRASMISSIONE>
+              <xsl:value-of select="//DatiTrasmissione/FormatoTrasmissione"/>
+            </FORMATO_TRASMISSIONE>
+            <CODICE_DESTINATARIO>
+              <xsl:value-of select="//DatiTrasmissione/CodiceDestinatario"/>
+            </CODICE_DESTINATARIO>
+            <EMAIL>
+              <xsl:value-of select="//DatiTrasmissione/ContattiTrasmittente/Email"/>
+            </EMAIL>
+            <CEDENTE_DENOMINAZIONE>
+              <xsl:value-of select="//CedentePrestatore/DatiAnagrafici/Anagrafica/Denominazione"/>
+            </CEDENTE_DENOMINAZIONE>
+            <CEDENTE_INDIRIZZO>
+              <xsl:value-of select="//CedentePrestatore/Sede/Indirizzo"/>
+            </CEDENTE_INDIRIZZO>
+            <CEDENTE_CAP>
+              <xsl:value-of select="//CedentePrestatore/Sede/CAP"/>
+            </CEDENTE_CAP>
+            <CEDENTE_COMUNE>
+              <xsl:value-of select="//CedentePrestatore/Sede/Comune"/>
+            </CEDENTE_COMUNE>
+            <CEDENTE_PROVINCIA>
+              <xsl:value-of select="//CedentePrestatore/Sede/Provincia"/>
+            </CEDENTE_PROVINCIA>
+            <CEDENTE_NAZIONE>
+              <xsl:value-of select="//CedentePrestatore/Sede/Nazione"/>
+            </CEDENTE_NAZIONE>
+            <CESSIONARIO_DENOMINAZIONE>
+              <xsl:value-of select="//CessionarioCommittente/DatiAnagrafici/Anagrafica/Denominazione"/>
+            </CESSIONARIO_DENOMINAZIONE>
+            <CESSIONARIO_INDIRIZZO>
+              <xsl:value-of select="//CessionarioCommittente/Sede/Indirizzo"/>
+            </CESSIONARIO_INDIRIZZO>
+            <CESSIONARIO_CAP>
+              <xsl:value-of select="//CessionarioCommittente/Sede/CAP"/>
+            </CESSIONARIO_CAP>
+            <CESSIONARIO_COMUNE>
+              <xsl:value-of select="//CessionarioCommittente/Sede/Comune"/>
+            </CESSIONARIO_COMUNE>
+            <CESSIONARIO_PROVINCIA>
+              <xsl:value-of select="//CessionarioCommittente/Sede/Provincia"/>
+            </CESSIONARIO_PROVINCIA>
+            <CESSIONARIO_NAZIONE>
+              <xsl:value-of select="//CessionarioCommittente/Sede/Nazione"/>
+            </CESSIONARIO_NAZIONE>
+          </TESTATA>
+
+          <!-- Sezione Posizioni -->
+          <POSIZIONI>
+            <xsl:for-each select="//p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee">
+              <item>
+                <NUMERO_LINEA>
+                  <xsl:value-of select="NumeroLinea"/>
+                </NUMERO_LINEA>
+                <CODICE_TIPO>
+                  <xsl:value-of select="CodiceArticolo/CodiceTipo"/>
+                </CODICE_TIPO>
+                <CODICE_VALORE>
+                  <xsl:value-of select="CodiceArticolo/CodiceValore"/>
+                </CODICE_VALORE>
+                <DESCRIZIONE>
+                  <xsl:value-of select="Descrizione"/>
+                </DESCRIZIONE>
+                <QUANTITA>
+                  <xsl:value-of select="Quantita"/>
+                </QUANTITA>
+                <UNITA_MISURA>
+                  <xsl:value-of select="UnitaMisura"/>
+                </UNITA_MISURA>
+                <PREZZO_UNITARIO>
+                  <xsl:value-of select="PrezzoUnitario"/>
+                </PREZZO_UNITARIO>
+                <PREZZO_TOTALE>
+                  <xsl:value-of select="PrezzoTotale"/>
+                </PREZZO_TOTALE>
+                <ALIQUOTA_IVA>
+                  <xsl:value-of select="AliquotaIVA"/>
+                </ALIQUOTA_IVA>
+              </item>
+            </xsl:for-each>
+          </POSIZIONI>
+
+          <!-- Sezione Riepilogo IVA -->
+          <RIEPILOGO>
+            <xsl:for-each select="//p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DatiRiepilogo">
+              <item>
+                <ALIQUOTA_IVA>
+                  <xsl:value-of select="AliquotaIVA"/>
+                </ALIQUOTA_IVA>
+                <IMPONIBILE_IMPORTO>
+                  <xsl:value-of select="ImponibileImporto"/>
+                </IMPONIBILE_IMPORTO>
+                <IMPOSTA>
+                  <xsl:value-of select="Imposta"/>
+                </IMPOSTA>
+                <ESIGIBILITA_IVA>
+                  <xsl:value-of select="EsigibilitaIVA"/>
+                </ESIGIBILITA_IVA>
+              </item>
+            </xsl:for-each>
+          </RIEPILOGO>
+
+          <!-- Sezione Allegati -->
+          <ALLEGATI>
+            <xsl:for-each select="//p:FatturaElettronica/FatturaElettronicaBody/Allegati">
+              <item>
+                <NOME_ATTACHMENT>
+                  <xsl:value-of select="NomeAttachment"/>
+                </NOME_ATTACHMENT>
+                <FORMATO_ATTACHMENT>
+                  <xsl:value-of select="FormatoAttachment"/>
+                </FORMATO_ATTACHMENT>
+                <DESCRIZIONE_ATTACHMENT>
+                  <xsl:value-of select="DescrizioneAttachment"/>
+                </DESCRIZIONE_ATTACHMENT>
+                <ATTACHMENT>
+                  <xsl:value-of select="Attachment"/>
+                </ATTACHMENT>
+              </item>
+            </xsl:for-each>
+          </ALLEGATI>
+        </FATTURA>
+      </asx:values>
+    </asx:abap>
+  </xsl:template>
+</xsl:transform>

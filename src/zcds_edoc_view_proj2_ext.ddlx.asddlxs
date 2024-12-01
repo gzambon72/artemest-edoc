@@ -24,7 +24,7 @@ annotate entity ZCDS_EDOC_VIEW_PROJ2 with
                 } ]
  
 
-  @UI.hidden: true
+ 
   mimetype;
   
 

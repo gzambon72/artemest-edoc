@@ -108,6 +108,9 @@ define root view entity ZCDS_EDOC_VIEW_PROJ2
         }
     ]
       xmlAttachment,
+      MimeType,
+      pdfdata,
+      mimetypepdf,
       ernam,
 
       @UI: {

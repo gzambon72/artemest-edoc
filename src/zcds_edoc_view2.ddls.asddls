@@ -37,9 +37,6 @@ define root view entity ZCDS_EDOC_VIEW2
       DocFile.xmldata      as xmlAttachment,
       @Semantics.mimeType: true
       DocFile.mimetypexml              as MimeType,
-             
-  
-      
       DocFile.mimetypepdf,
       DocFile.pdfdata
 }

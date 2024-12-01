@@ -80,20 +80,7 @@ define root view entity ZCDS_EDOC_VIEW_PROJ
         position: 50
       } ]
       filename,
-
-      @EndUserText.label: 'Mimetype XML'
-      @UI.identification: [ {
-        position: 60 ,
-        label: 'MIME Type'
-      } ]
-      @UI.lineItem: [ {
-        position: 60 ,
-        label: 'MIME Type'
-      } ]
-      @UI.selectionField: [ {
-        position: 60
-      } ]
-      @UI.hidden: true
+ 
 
       ernam,
 
