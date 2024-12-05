@@ -1,0 +1,55 @@
+@Metadata.layer: #CUSTOMER
+annotate entity ZCDS_EDOC_VIEW_PROJ_NEW with
+{
+
+  @UI.facet: [
+      {
+          id: 'GeneralInfo',
+          purpose: #STANDARD,
+          type: #IDENTIFICATION_REFERENCE,
+          label: 'General Information',
+          position: 10
+      },
+      {
+          id: 'DocumentInfo',
+          purpose: #STANDARD,
+          type: #FIELDGROUP_REFERENCE,
+          label: 'Document Details',
+          position: 20,
+          targetQualifier: 'DocDetails'
+      },
+            {
+          id: 'XMLContent',
+          purpose: #STANDARD,
+          type: #FIELDGROUP_REFERENCE,
+          label: 'XML Content',
+          position: 30,
+          targetQualifier: 'XMLContent'
+      }
+  ]
+
+ 
+  @UI.hidden: true
+  MimeType;
+
+  @UI.fieldGroup: [{ position: 10, qualifier: 'XMLContent', label: 'XML Content' }]
+  XMLContent;
+
+  // Search Term #Stream
+  @UI.hidden: true
+  Filename;
+
+  @UI.hidden: true
+  MimeTypePDF;
+  @UI.fieldGroup: [{ position: 20, qualifier: 'XMLContent', label: 'PDF Content' }]
+  PDFContent;
+  @UI.hidden: true
+  FilenamePdf;
+
+  @UI.hidden: true
+  MimeTypeZip;
+  @UI.fieldGroup: [{ position: 30, qualifier: 'XMLContent', label: 'ZIP Content' }]
+  ZIPContent;
+  @UI.hidden: true
+  ernam;
+}

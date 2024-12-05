@@ -1,12 +1,12 @@
-class ZCL_SDI_XML_MODEL definition
-  public
-  final
-  create public .
+CLASS zcl_sdi_xml_model DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ty_invoice_line,
+    TYPES:
+      BEGIN OF ty_invoice_line,
         doc_number    TYPE string,
         doc_date      TYPE string,
         supplier_vat  TYPE string,
@@ -21,38 +21,38 @@ public section.
         total_price   TYPE string,
         vat_rate      TYPE string,
       END OF ty_invoice_line .
-  types:
-    tt_invoice_lines TYPE TABLE OF ty_invoice_line .
-  types:
+    TYPES:
+      tt_invoice_lines TYPE TABLE OF ty_invoice_line .
+    TYPES:
       " Strutture per le tabelle annidate
-    BEGIN OF ty_delivery_note,
+      BEGIN OF ty_delivery_note,
         supplierinvoice     TYPE string,
         fiscalyear          TYPE string,
         inbounddeliverynote TYPE string,
       END OF ty_delivery_note .
-  types:
-    tt_delivery_notes TYPE STANDARD TABLE OF ty_delivery_note WITH DEFAULT KEY .
-  types:
-    BEGIN OF ty_purchase_order,
+    TYPES:
+      tt_delivery_notes TYPE STANDARD TABLE OF ty_delivery_note WITH DEFAULT KEY .
+    TYPES:
+      BEGIN OF ty_purchase_order,
         supplierinvoice   TYPE string,
         fiscalyear        TYPE string,
         purchaseorder     TYPE string,
         purchaseorderitem TYPE string,
       END OF ty_purchase_order .
-  types:
-    tt_purchase_orders TYPE STANDARD TABLE OF ty_purchase_order WITH DEFAULT KEY .
-  types:
-    BEGIN OF ty_service_sheet,
+    TYPES:
+      tt_purchase_orders TYPE STANDARD TABLE OF ty_purchase_order WITH DEFAULT KEY .
+    TYPES:
+      BEGIN OF ty_service_sheet,
         supplierinvoice       TYPE string,
         fiscalyear            TYPE string,
         serviceentrysheet     TYPE string,
         serviceentrysheetitem TYPE string,
       END OF ty_service_sheet .
-  types:
-    tt_service_sheets TYPE STANDARD TABLE OF ty_service_sheet WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_service_sheets TYPE STANDARD TABLE OF ty_service_sheet WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Invoice Item Asset
-    BEGIN OF ty_item_asset,
+      BEGIN OF ty_item_asset,
         supplierinvoice            TYPE string,
         fiscalyear                 TYPE string,
         supplierinvoiceitem        TYPE string,
@@ -77,11 +77,11 @@ public section.
         suplrinvcitmqtyunitisocode TYPE string,
         quantity                   TYPE string,
       END OF ty_item_asset .
-  types:
-    tt_item_assets TYPE STANDARD TABLE OF ty_item_asset WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_item_assets TYPE STANDARD TABLE OF ty_item_asset WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Material Items
-    BEGIN OF ty_item_material,
+      BEGIN OF ty_item_material,
         supplierinvoice            TYPE string,
         fiscalyear                 TYPE string,
         supplierinvoiceitem        TYPE string,
@@ -103,11 +103,11 @@ public section.
         debitcreditcode            TYPE string,
         isnotcashdiscountliable    TYPE abap_bool,
       END OF ty_item_material .
-  types:
-    tt_item_materials TYPE STANDARD TABLE OF ty_item_material WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_item_materials TYPE STANDARD TABLE OF ty_item_material WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Account Assignment
-    BEGIN OF ty_account_assignment,
+      BEGIN OF ty_account_assignment,
         supplierinvoice               TYPE string,
         fiscalyear                    TYPE string,
         supplierinvoiceitem           TYPE string,
@@ -132,11 +132,11 @@ public section.
         taxcountry                    TYPE string,
         taxdeterminationdate          TYPE string,
       END OF ty_account_assignment .
-  types:
-    tt_account_assignments TYPE STANDARD TABLE OF ty_account_assignment WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_account_assignments TYPE STANDARD TABLE OF ty_account_assignment WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Purchase Order Reference
-    BEGIN OF ty_pur_ord_ref,
+      BEGIN OF ty_pur_ord_ref,
         supplierinvoice              TYPE string,
         fiscalyear                   TYPE string,
         supplierinvoiceitem          TYPE string,
@@ -152,11 +152,11 @@ public section.
         isfinallyinvoiced            TYPE abap_bool,
         to_supplinvitmacctassgmt     TYPE tt_account_assignments,
       END OF ty_pur_ord_ref .
-  types:
-    tt_pur_ord_refs TYPE STANDARD TABLE OF ty_pur_ord_ref WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_pur_ord_refs TYPE STANDARD TABLE OF ty_pur_ord_ref WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Additional Data
-    BEGIN OF ty_additional_data,
+      BEGIN OF ty_additional_data,
         supplierinvoice                TYPE string,
         fiscalyear                     TYPE string,
         invoicingpartyname1            TYPE string,
@@ -171,9 +171,9 @@ public section.
         isnaturalperson                TYPE abap_bool,
         onetmeacctisequalizationtxsubj TYPE abap_bool,
       END OF ty_additional_data .
-  types:
+    TYPES:
       " Struttura per Tax Data
-    BEGIN OF ty_invoice_tax,
+      BEGIN OF ty_invoice_tax,
         supplierinvoice           TYPE string,
         fiscalyear                TYPE string,
         taxcode                   TYPE string,
@@ -186,55 +186,55 @@ public section.
         taxdeterminationdate      TYPE string,
         taxratevaliditystartdate  TYPE string,
       END OF ty_invoice_tax .
-  types:
-    tt_invoice_taxes TYPE STANDARD TABLE OF ty_invoice_tax WITH DEFAULT KEY .
-  types:
+    TYPES:
+      tt_invoice_taxes TYPE STANDARD TABLE OF ty_invoice_tax WITH DEFAULT KEY .
+    TYPES:
       " Struttura per Selected Delivery Notes
       " Tabella per results di Delivery Notes
-    BEGIN OF ty_delivery_notes_wrapper,
+      BEGIN OF ty_delivery_notes_wrapper,
         results TYPE STANDARD TABLE OF ty_delivery_note WITH DEFAULT KEY,
       END OF ty_delivery_notes_wrapper .
-  types:
-    BEGIN OF ty_purchase_orders_wrapper,
+    TYPES:
+      BEGIN OF ty_purchase_orders_wrapper,
         results TYPE STANDARD TABLE OF ty_purchase_order WITH DEFAULT KEY,
       END OF ty_purchase_orders_wrapper .
-  types:
-    BEGIN OF ty_asset_wrapper,
+    TYPES:
+      BEGIN OF ty_asset_wrapper,
         results TYPE STANDARD TABLE OF ty_item_asset WITH DEFAULT KEY,
       END OF ty_asset_wrapper .
-  types:
+    TYPES:
 *      BEGIN OF ty_delivery_notes_wrapper,
 *        results TYPE STANDARD TABLE OF ty_delivery_note WITH DEFAULT KEY,
 *      END OF ty_delivery_notes_wrapper,
 *      BEGIN OF ty_purchase_orders_wrapper,
 *        results TYPE STANDARD TABLE OF ty_purchase_order WITH DEFAULT KEY,
 *      END OF ty_purchase_orders_wrapper,
-    BEGIN OF ty_service_sheets_wrapper,
+      BEGIN OF ty_service_sheets_wrapper,
         results TYPE STANDARD TABLE OF ty_service_sheet WITH DEFAULT KEY,
       END OF ty_service_sheets_wrapper .
-  types:
-    BEGIN OF ty_item_asset_wrapper,
+    TYPES:
+      BEGIN OF ty_item_asset_wrapper,
         results TYPE STANDARD TABLE OF ty_item_asset WITH DEFAULT KEY,
       END OF ty_item_asset_wrapper .
-  types:
-    BEGIN OF ty_item_material_wrapper,
+    TYPES:
+      BEGIN OF ty_item_material_wrapper,
         results TYPE STANDARD TABLE OF ty_item_material WITH DEFAULT KEY,
       END OF ty_item_material_wrapper .
-  types:
-    BEGIN OF ty_pur_ord_ref_wrapper,
+    TYPES:
+      BEGIN OF ty_pur_ord_ref_wrapper,
         results TYPE STANDARD TABLE OF ty_pur_ord_ref WITH DEFAULT KEY,
       END OF ty_pur_ord_ref_wrapper .
-  types:
-    BEGIN OF ty_gl_acct_wrapper,
+    TYPES:
+      BEGIN OF ty_gl_acct_wrapper,
         results TYPE STANDARD TABLE OF ty_account_assignment WITH DEFAULT KEY,
       END OF ty_gl_acct_wrapper .
-  types:
-    BEGIN OF ty_invoice_tax_wrapper,
+    TYPES:
+      BEGIN OF ty_invoice_tax_wrapper,
         results TYPE STANDARD TABLE OF ty_invoice_tax WITH DEFAULT KEY,
       END OF ty_invoice_tax_wrapper .
-  types:
+    TYPES:
       " Struttura principale
-    BEGIN OF ty_supplier_invoice_deep,   supplierinvoice                TYPE string,
+      BEGIN OF ty_supplier_invoice_deep,   supplierinvoice                TYPE string,
         fiscalyear                     TYPE string,
         companycode                    TYPE string,
         documentdate                   TYPE string,
@@ -329,13 +329,13 @@ public section.
         to_supplrinvoicetax            TYPE ty_invoice_tax_wrapper,
 *    to_additionaldata  type ty_additionaldata_wrapper,
       END OF ty_supplier_invoice_deep .
-  types:
+    TYPES:
       " Struttura root
-    BEGIN OF ty_root,
+      BEGIN OF ty_root,
         d TYPE ty_supplier_invoice_deep,
       END OF ty_root .
-  types:
-    BEGIN OF ty_testata,
+    TYPES:
+      BEGIN OF ty_testata,
         id_paese                  TYPE string,
         id_codice                 TYPE string,
         progressivo_invio         TYPE string,
@@ -354,9 +354,12 @@ public section.
         cessionario_comune        TYPE string,
         cessionario_provincia     TYPE string,
         cessionario_nazione       TYPE string,
+        data_fattura              TYPE string,
+        importototaledocumento    TYPE string,
+
       END OF ty_testata .
-  types:
-    BEGIN OF ty_posizione,
+    TYPES:
+      BEGIN OF ty_posizione,
         numero_linea    TYPE string,
         codice_tipo     TYPE string,
         codice_valore   TYPE string,
@@ -367,75 +370,86 @@ public section.
         prezzo_totale   TYPE string,
         aliquota_iva    TYPE string,
       END OF ty_posizione .
-  types:
-    BEGIN OF ty_allegati,
+    TYPES:
+      BEGIN OF ty_allegati,
         nome_attachment        TYPE string,
         formato_attachment     TYPE string,
         descrizione_attachment TYPE string,
         attachment             TYPE string,
       END OF ty_allegati .
-  types:
-    BEGIN OF ty_riepilogo,
+    TYPES:
+      BEGIN OF ty_riepilogo,
         aliquota_iva       TYPE string,
         imponibile_importo TYPE string,
         imposta            TYPE string,
         esigibilita_iva    TYPE string,
       END OF ty_riepilogo .
-  types:
+    TYPES:
       "Definizione tipi
-    BEGIN OF ts_fattura,
+      BEGIN OF ts_fattura,
         testata   TYPE ty_testata,
         posizioni TYPE TABLE OF ty_posizione WITH EMPTY KEY,
         allegati  TYPE TABLE OF ty_allegati WITH EMPTY KEY,
         riepilogo TYPE TABLE OF ty_riepilogo WITH EMPTY KEY,
       END OF ts_fattura .
 
-  methods TRANSFORM_XML_TO_API_JSON
-    importing
-      !IV_XML type STRING
-    returning
-      value(EV_JSON) type STRING .
-  methods GET_XML
-    returning
-      value(EV_ZIP) type XSTRING .
-  methods PARSE_XML
-    importing
-      !XRESULT type ANY
-    returning
-      value(OUTPUT) type STRING .
-  methods GET_ALLEGATO
-    exporting
-      !ALLEGATO type TY_ALLEGATI .
-  methods GET_TESTATA
-    exporting
-      !TESTATA type TY_TESTATA .
-  methods FROM_ZIP_TO_XML
-    importing
-      !I_FILENAME type STRING
-      !I_ZIP type XSTRING
-    returning
-      value(LV_XML_STRING) type STRING .
-  methods FROM_XML_TO_ZIP
-    importing
-      !LV_XML_STRING type STRING
-    exporting
-      !E_FILENAME type STRING
-      !E_ZIP type XSTRING .
-      METHODS get_content_dummy RETURNING VALUE(e_content) TYPE string..
-  PROTECTED SECTION.
-private section.
+    METHODS transform_xml_to_api_json
+      IMPORTING
+        !iv_xml        TYPE string
+      RETURNING
+        VALUE(ev_json) TYPE string .
+    METHODS get_xml
+      RETURNING
+        VALUE(ev_zip) TYPE xstring .
+    METHODS get_encoded_xml
+      IMPORTING
+        !xresult      TYPE any
+      RETURNING
+        VALUE(output) TYPE xstring .
+    METHODS parse_xml
+      IMPORTING
+        !xresult      TYPE any
+      RETURNING
+        VALUE(output) TYPE string .
+    METHODS get_allegato
+      EXPORTING
+        !allegato TYPE ty_allegati .
+    METHODS get_testata
+      EXPORTING
+        !testata TYPE ty_testata .
+    METHODS    get_xml_header
+      RETURNING VALUE(xml_header) TYPE zoe_xml_data_extract  .
+    METHODS from_zip_to_xml
+      IMPORTING
+        !i_filename          TYPE string
+        !i_zip               TYPE xstring
+      RETURNING
+        VALUE(lv_xml_string) TYPE string .
+    METHODS from_xml_to_zip
+      IMPORTING
+        !lv_xml_string  TYPE string
+      EXPORTING
+        !e_filename_pdf TYPE string
+        !e_filename_xml TYPE string
+        !e_filename_zip TYPE string
+        !e_zip          TYPE xstring
+        !e_pdf          TYPE xstring.
+    METHODS get_content_dummy RETURNING VALUE(e_content) TYPE string.
 
-  data LS_TESTATA type TY_TESTATA .
-  data LS_ALLEGATO type TY_ALLEGATI .
-  data LS_ROOT type TY_ROOT .
-  data LT_INVOICE_LINES type TT_INVOICE_LINES .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    DATA o_model TYPE REF TO zcl_sdi_xml_model.
+    DATA ls_testata TYPE ty_testata .
+    DATA xml_header TYPE zoe_xml_data_extract.
+    DATA ls_allegato TYPE ty_allegati .
+    DATA ls_root TYPE ty_root .
+    DATA lt_invoice_lines TYPE tt_invoice_lines .
 ENDCLASS.
 
 
 
-CLASS ZCL_SDI_XML_MODEL IMPLEMENTATION.
-
-METHOD get_content_dummy.
+CLASS zcl_sdi_xml_model IMPLEMENTATION.
+  METHOD get_content_dummy.
     DATA(lv_xml_content) = |<?xml version="1.0" encoding="UTF-8"?>| &&
     |<?xml-stylesheet type="text/xsl" href="../../css/fatturaordinaria_v1.2.1.xsl"?>| &&
     |<p:FatturaElettronica versione="FPR12" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2" | &&
@@ -738,17 +752,20 @@ METHOD get_content_dummy.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_SDI_XML_MODEL->FROM_XML_TO_ZIP
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] LV_XML_STRING                  TYPE        STRING
-* | [<---] E_FILENAME                     TYPE        STRING
+* | [<---] E_FILENAME_PDF TYPE STRING
+* | [<---] E_FILENAME_XML TYPE STRING
+* | [<---] E_FILENAME_ZIP TYPE STRING
 * | [<---] E_ZIP                          TYPE        XSTRING
+* | [<---] E_PDF                          TYPE        XSTRING
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD from_xml_to_zip.
     DATA xml_base64_x_encoded TYPE xstring.
     DATA pdf_base64_x_decoded TYPE xstring.
 
-    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
+*    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
 *    DATA(xml_base64_encoded) =   lv_xml_string  .
-    parse_xml( xml_base64_encoded )    .
+    DATA(xml_utf8_encoded) = cl_web_http_utility=>encode_utf8( lv_xml_string ).
+    parse_xml( xml_utf8_encoded )    .
     get_testata( IMPORTING testata = DATA(ls_testata) ).
     get_allegato( IMPORTING allegato = DATA(ls_allegato) ).
 
@@ -757,17 +774,21 @@ METHOD get_content_dummy.
         RESULT pdf = pdf_base64_x_decoded.
 
     CALL TRANSFORMATION id
-       SOURCE xml = xml_base64_encoded
+       SOURCE xml = xml_utf8_encoded
        RESULT xml = xml_base64_x_encoded.
 
-    e_filename = ls_allegato-nome_attachment.
-    DATA(xml_filename) = ls_allegato-nome_attachment.
-    REPLACE 'PDF' WITH 'ZIP' INTO e_filename .
-    REPLACE 'PDF' WITH 'XML' INTO xml_filename .
+    e_pdf = pdf_base64_x_decoded.
+    e_filename_pdf = ls_allegato-nome_attachment.
+    e_filename_zip = e_filename_pdf.
+
+*    DATA(zip_filename) = ls_allegato-nome_attachment.
+
+    REPLACE 'PDF' WITH 'ZIP' INTO e_filename_zip .
+    REPLACE 'PDF' WITH 'XML' INTO e_filename_xml .
 
     DATA(lo_zip) = NEW cl_abap_zip( ).
-    lo_zip->add( name    = ls_allegato-nome_attachment  content = pdf_base64_x_decoded ).
-    lo_zip->add( name    = xml_filename  content = xml_base64_x_encoded ).
+    lo_zip->add( name    = e_filename_pdf  content = pdf_base64_x_decoded ). "PDF
+    lo_zip->add( name    = e_filename_xml  content = xml_utf8_encoded ). " XML
     e_zip = lo_zip->save( ).
   ENDMETHOD.
 
@@ -827,7 +848,7 @@ METHOD get_content_dummy.
        RESULT xml = xml_base64_encoded.
 
 *    lv_xml_string = cl_web_http_utility=>decode_base64( xml_base64_encoded ).
-    lv_xml_string = cl_web_http_utility=>DECODE_UTF8( xml_base64_x_encoded ).
+    lv_xml_string = cl_web_http_utility=>decode_utf8( xml_base64_x_encoded ).
 
 
   ENDMETHOD.
@@ -852,7 +873,12 @@ METHOD get_content_dummy.
     testata = me->ls_testata.
   ENDMETHOD.
 
+  METHOD get_xml_header.
+    me->xml_header = VALUE #( vatcode = me->ls_testata-id_paese && me->ls_testata-id_codice cedente = me->ls_testata-cedente_denominazione
+           data_fattura = me->ls_testata-data_fattura importototaledocumento  = me->ls_testata-importototaledocumento  ).
 
+    xml_header = me->xml_header.
+  ENDMETHOD.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_SDI_XML_MODEL->GET_XML
 * +-------------------------------------------------------------------------------------------------+
@@ -865,7 +891,31 @@ METHOD get_content_dummy.
 
   ENDMETHOD.
 
+  METHOD get_encoded_xml.
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SDI_XML_MODEL->PARSE_XML
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] XRESULT                        TYPE        ANY
+* | [<-()] OUTPUT                         TYPE        XSTRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
 
+    DATA payload TYPE string.
+
+    IF xresult IS INITIAL.
+      payload = get_content_dummy(  ).
+    ELSE.
+      payload = xresult.
+    ENDIF.
+
+    DATA(lv_xml_xstring) = xco_cp=>string( payload
+      )->as_xstring( xco_cp_character=>code_page->utf_8
+      )->value.
+
+*    output = cl_web_http_utility=>encode_utf8( payload ).
+
+    output = lv_xml_xstring.
+
+  ENDMETHOD.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_SDI_XML_MODEL->PARSE_XML
 * +-------------------------------------------------------------------------------------------------+
@@ -883,8 +933,9 @@ METHOD get_content_dummy.
 
 
 
-    DATA(base64_decoded) = cl_web_http_utility=>decode_base64( xresult ).
-    lv_xml = base64_decoded.
+*    DATA(base64_decoded) = cl_web_http_utility=>decode_base64( xresult ).
+    DATA(base64_utf8) = cl_web_http_utility=>decode_utf8( xresult ).
+    lv_xml = base64_utf8.
 
 
     DATA: ls_fattura TYPE ts_fattura.
@@ -919,8 +970,6 @@ METHOD get_content_dummy.
         assoc_arrays     = abap_true                            "array per tabelle
         ts_as_iso8601   = abap_true                            "timestamp ISO8601
     ).
-
-    "Se serve convertire da stringa a xstring
 
 
   ENDMETHOD.

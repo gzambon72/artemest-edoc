@@ -16,6 +16,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
   METHOD if_http_service_extension~handle_request.
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
+
     DATA(action) = request->get_header_field( 'ACTION' ).
 
     DATA(path_info) =  request->get_header_field( i_name = '~path_info' ).
@@ -36,15 +37,46 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             action = 'ZIP-GET'.
           WHEN 'UNIT-TEST-CREATE'.
             action = 'CREATE_UNIT_TEST'.
+          WHEN 'XML-GET'.
+            action = 'XML-GET'.
+          WHEN 'UPLOAD-XML'.
+            action = 'UPLOAD-XML'.
           WHEN OTHERS.
         ENDCASE.
 
+        DATA(xoutput) = o_model->get_encoded_xml( lv_request_body  ).
+        DATA o_edoc TYPE REF TO zcl_zoe_edoc.
+
         CASE action.
+          WHEN  'CREATE_UNIT_TEST'.
+
+            DATA(o_dispatcher) = NEW zcl_zoe_dispatcher(  ).
+
+            o_dispatcher->execute_action(  action ).
+            response->set_text( '<h1>CREATE_UNIT_TEST ---> SUCCESS<h1>' ).
+          WHEN 'UPLOAD-XML'.
+            o_edoc = NEW zcl_zoe_edoc(  is_new = abap_true iv_content = xoutput  ).
+            o_edoc->execute_action(  'CREATE' ).
+          WHEN 'XML-GET'.
+
+
+*            DATA(coutput) =   cl_web_http_utility=>decode_utf8( xoutput ).
+
+            response->set_header_field(
+          EXPORTING
+            i_name  = 'Content-Type'
+            i_value = 'application/xml' ).  "MIME type per FIP
+
+
+            response->set_binary( xoutput ).
+
+
+
           WHEN 'ZIP-GET'.
 
             SELECT * FROM zedoc_db INTO @DATA(wa) UP TO 1 ROWS.
             ENDSELECT.
-            lv_zip   = wa-pdfdata.
+            lv_zip   = wa-zipdata.
 
             lv_filename = 'test-download-da-db.zip'.
 
@@ -75,7 +107,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             EXPORTING
               lv_xml_string = lv_request_body
             IMPORTING
-              e_filename    = lv_filename
+              e_filename_zip    = lv_filename
               e_zip         =  lv_zip  )    .
 
             response->set_header_field(
@@ -104,7 +136,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             EXPORTING
               lv_xml_string = lv_request_body
             IMPORTING
-              e_filename    = lv_filename
+              e_filename_zip    = lv_filename
               e_zip         =  lv_zip  )    .
 
 
@@ -118,18 +150,11 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             response->set_header_field(
           EXPORTING
             i_name  = 'Content-Type'
-            i_value = 'application/xml' ).  "MIME type per FIP
+            i_value = 'application/xml' ).  "
 
 
             response->set_text( response_xml ).
 
-
-          WHEN  'CREATE_UNIT_TEST'.
-            DATA o_edoc TYPE REF TO zcl_zoe_edoc.
-
-            o_edoc = NEW zcl_zoe_edoc( ).
-
-            response->set_text( 'NO error in program' ).
 
         ENDCASE.
 

@@ -61,6 +61,12 @@
             <CESSIONARIO_NAZIONE>
               <xsl:value-of select="//CessionarioCommittente/Sede/Nazione"/>
             </CESSIONARIO_NAZIONE>
+            <DATA_FATTURA>
+             <xsl:value-of select="//DatiGenerali/DatiGeneraliDocumento/Data"/>
+            </DATA_FATTURA>
+            <IMPORTOTOTALEDOCUMENTO>
+             <xsl:value-of select="//DatiGenerali/DatiGeneraliDocumento/ImportoTotaleDocumento"/>
+            </IMPORTOTOTALEDOCUMENTO>
           </TESTATA>
 
           <!-- Sezione Posizioni -->

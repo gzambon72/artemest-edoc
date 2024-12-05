@@ -1,4 +1,4 @@
-@EndUserText.label: 'Electronic Document View'
+@EndUserText.label: 'Electronic Document CDS View'
 @Metadata.ignorePropagatedAnnotations: true
 @Search.searchable: true
 define root view entity ZCDS_EDOC_VIEW
@@ -15,10 +15,44 @@ define root view entity ZCDS_EDOC_VIEW
   key Flow.edocflow,
       @Search.defaultSearchElement: true
   key DocDB.unique_value,
-      GroupDB.descr,  
+      GroupDB.groupdescr,
       Flow.edocflowdescr,
       Document.statusdescr,
-      DocDB.xdata,
+      Document.vatcode as VAT,
+      Document.cedente as Cedente,
+      Document.importototaledocumento as ImportoFattura,
+      Document.data_fattura as DataFattura,
+      // XML
+      DocDB.filename    as Filename,
+      @Semantics.mimeType: true
+      DocDB.mimetypexml as MimeType,
+      @Semantics.largeObject:
+                    { mimeType: 'MimeType',
+                    fileName: 'Filename',
+                    contentDispositionPreference: #INLINE }
+      DocDB.xmldata     as xmlAttachment,
+      DocDB.file_sraw as xmlAttachmentRaw,
+      // PDF
+      DocDB.filenamepdf as FilenamePdf,
+      @Semantics.mimeType: true
+      DocDB.mimetypepdf as MimeTypePDF,
+      @Semantics.largeObject:
+                    { mimeType: 'MimeTypePDF',
+                    fileName: 'FilenamePdf',
+                    contentDispositionPreference: #INLINE }
+      DocDB.pdfdata,
+      
+      // ZIP
+      DocDB.filenamezip as FilenameZIP,
+      @Semantics.mimeType: true
+      DocDB.mimetypezip as MimeTypeZip,
+
+      @Semantics.largeObject:
+           { mimeType: 'MimeTypeZip',
+           fileName: 'FilenameZIP',
+           contentDispositionPreference: #INLINE }
+      DocDB.zipdata     as zipAttachment,
+
       DocDB.created_on,
       DocDB.created_by,
       DocDB.lastchangedby,
@@ -27,14 +61,7 @@ define root view entity ZCDS_EDOC_VIEW
       DocDB.ernam,
       DocDB.erdat,
       DocDB.erzet,
-      DocDB.tmstp,
-      Document.bukrs,
-      DocFile.filename,
-      DocFile.mimetypexml,
-      DocFile.xmldata,
-      DocFile.mimetypepdf,
-      DocFile.pdfdata
+      DocDB.tmstp
 }
 where
   DocDB.edocflow = 'EDOC'
-

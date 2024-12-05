@@ -1,0 +1,4 @@
+@EndUserText.label: 'ZCDS_EDOC_VIEW_PROJ Service Definition'
+define service ZCDS_EDOC_VIEW_PROJ {
+  expose ZCDS_EDOC_VIEW_PROJ as ElectronicDocument;
+}

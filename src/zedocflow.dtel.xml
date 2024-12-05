@@ -10,28 +10,15 @@
     <SCRLEN1>10</SCRLEN1>
     <SCRLEN2>20</SCRLEN2>
     <SCRLEN3>40</SCRLEN3>
-    <DDTEXT>EDOC (Flusso)</DDTEXT>
-    <REPTEXT>Edoc Flow</REPTEXT>
-    <SCRTEXT_S>Edoc Flow</SCRTEXT_S>
-    <SCRTEXT_M>Edoc Flow</SCRTEXT_M>
-    <SCRTEXT_L>Edoc Flow</SCRTEXT_L>
-    <DTELMASTER>I</DTELMASTER>
+    <DDTEXT>Edoc FLow</DDTEXT>
+    <REPTEXT>Edoc FLow</REPTEXT>
+    <SCRTEXT_S>Edoc FLow</SCRTEXT_S>
+    <SCRTEXT_M>Edoc FLow</SCRTEXT_M>
+    <SCRTEXT_L>Edoc FLow</SCRTEXT_L>
+    <DTELMASTER>E</DTELMASTER>
     <REFKIND>D</REFKIND>
     <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
    </DD04V>
-   <I18N_LANGS>
-    <LANGU>I</LANGU>
-   </I18N_LANGS>
-   <DD04_TEXTS>
-    <item>
-     <DDLANGUAGE>I</DDLANGUAGE>
-     <DDTEXT>EDOC (Flusso)</DDTEXT>
-     <REPTEXT>EDOC (Flusso)</REPTEXT>
-     <SCRTEXT_S>EDOC (Fl.)</SCRTEXT_S>
-     <SCRTEXT_M>EDOC (Flusso)</SCRTEXT_M>
-     <SCRTEXT_L>EDOC (Flusso)</SCRTEXT_L>
-    </item>
-   </DD04_TEXTS>
   </asx:values>
  </asx:abap>
 </abapGit>

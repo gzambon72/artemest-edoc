@@ -5,7 +5,7 @@
    <DDLS>
     <DDLNAME>ZCDS_EDOC_VIEW</DDLNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
-    <DDTEXT>Electronic Document View</DDTEXT>
+    <DDTEXT>Edocument CDS View</DDTEXT>
     <SOURCE_TYPE>W</SOURCE_TYPE>
    </DDLS>
   </asx:values>

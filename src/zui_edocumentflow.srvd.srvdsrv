@@ -1,0 +1,5 @@
+@ObjectModel.leadingEntity.name: 'ZI_EdocumentFlow_S'
+define service ZUI_EDOCUMENTFLOW {
+  expose ZI_EDOCUMENTFLOW_S as EdocumentFlowAll;
+  expose ZI_EDOCUMENTFLOW as EdocumentFlow;
+}

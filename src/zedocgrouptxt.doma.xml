@@ -8,17 +8,9 @@
     <DATATYPE>CHAR</DATATYPE>
     <LENG>000060</LENG>
     <OUTPUTLEN>000060</OUTPUTLEN>
-    <DDTEXT>EDOC - Gruppo  Descrizione</DDTEXT>
+    <DDTEXT>Edocument Group Description</DDTEXT>
+    <DOMMASTER>E</DOMMASTER>
    </DD01V>
-   <I18N_LANGS>
-    <LANGU>I</LANGU>
-   </I18N_LANGS>
-   <DD01_TEXTS>
-    <item>
-     <DDLANGUAGE>I</DDLANGUAGE>
-     <DDTEXT>EDOC - Gruppo  Descrizione</DDTEXT>
-    </item>
-   </DD01_TEXTS>
   </asx:values>
  </asx:abap>
 </abapGit>

@@ -54,13 +54,7 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
   METHOD uploadxml_model.
 
 
-    DATA o_edoc TYPE REF TO zcl_zoe_edoc.
-*
-    CREATE OBJECT o_edoc
-      EXPORTING
-        unit_test = abap_true.
-*
-    FREE o_edoc.
+   data(o_edoc) = NEW zcl_zoe_edoc( ).
 
   ENDMETHOD.
 
@@ -70,39 +64,39 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD xml_display.
-    DATA(o_unit_test) = NEW zcl_zoe_edoc_unit_test( ).
-    DATA xstring TYPE xstring.
-    DATA lv_xml_content TYPE string.
+**    DATA(o_unit_test) = NEW zcl_zoe_edoc_unit_test( ).
+*    DATA xstring TYPE xstring.
+*    DATA lv_xml_content TYPE string.
+*
+**    xstring  = o_unit_test->fake_xml_display_for_test( ).
+*    DATA o_edoc TYPE REF TO zcl_zoe_edoc.
+*
+*    LOOP AT keys INTO DATA(key).
+*
+*      DATA(unique_value) = key-unique_value.
+*
+*      CHECK unique_value IS NOT INITIAL.
+*
+*      CREATE OBJECT o_edoc
+*        EXPORTING
+*          unit_test    = abap_false
+**         filename     = filename
+*          iv_edoc_guid = unique_value
+**         iv_edocflow  = 'EDOC'
+*          is_new       = abap_false
+***         iv_content   = xdata
+*        .
+*
+*      o_edoc->execute_action( 'DISPLAY_XML' )  .
+*
+*      FREE o_edoc.
 
-*    xstring  = o_unit_test->fake_xml_display_for_test( ).
-    DATA o_edoc TYPE REF TO zcl_zoe_edoc.
-
-    LOOP AT keys INTO DATA(key).
-
-      DATA(unique_value) = key-unique_value.
-
-      CHECK unique_value IS NOT INITIAL.
-
-      CREATE OBJECT o_edoc
-        EXPORTING
-          unit_test    = abap_false
-*         filename     = filename
-          iv_edoc_guid = unique_value
-*         iv_edocflow  = 'EDOC'
-          is_new       = abap_false
-**         iv_content   = xdata
-        .
-
-      o_edoc->execute_action( 'DISPLAY_XML' )  .
-
-      FREE o_edoc.
-
-    ENDLOOP.
-
-
-    CALL TRANSFORMATION id
-             SOURCE XML xstring
-             RESULT  XML lv_xml_content.
+*    ENDLOOP.
+*
+*
+*    CALL TRANSFORMATION id
+*             SOURCE XML xstring
+*             RESULT  XML lv_xml_content.
 
 
 

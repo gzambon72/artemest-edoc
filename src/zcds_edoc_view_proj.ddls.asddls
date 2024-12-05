@@ -1,29 +1,14 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Projection View ZCDS_EDOC_VIEW'
 @Metadata.ignorePropagatedAnnotations: true
+@Metadata.allowExtensions: true
 @Search.searchable: true
 @UI: { headerInfo: { typeName: 'Electronic Document', typeNamePlural: 'Electronic Documents', title: { type: #STANDARD, value: 'edocflowdescr' } } }
 
 define root view entity ZCDS_EDOC_VIEW_PROJ
   as projection on ZCDS_EDOC_VIEW
 {
-      @UI.facet: [
-          {
-              id: 'GeneralInfo',
-              purpose: #STANDARD,
-              type: #IDENTIFICATION_REFERENCE,
-              label: 'General Information',
-              position: 10
-          },
-          {
-              id: 'DocumentInfo',
-              purpose: #STANDARD,
-              type: #FIELDGROUP_REFERENCE,
-              label: 'Document Details',
-              position: 20,
-              targetQualifier: 'DocDetails'
-          }
-      ]
+
   key edocgroup,
   key edocflow,
   key unique_value,
@@ -42,7 +27,7 @@ define root view entity ZCDS_EDOC_VIEW_PROJ
 
       @Search.defaultSearchElement: true
       @EndUserText.label: 'Gruppo'
-      descr,
+      groupdescr,
       @UI: {
        lineItem: [ { position: 20 } ],
        fieldGroup: [ { qualifier: 'DocDetails', position: 20 } ]
@@ -59,29 +44,59 @@ define root view entity ZCDS_EDOC_VIEW_PROJ
         label: 'Stato'
       } ]
       @UI.lineItem: [ {
-        position: 50 ,
+        position: 30 ,
         label: 'Stato'
       } ]
       @UI.selectionField: [ {
-        position: 50
+        position: 30
       } ]
       statusdescr,
 
       @EndUserText.label: 'Filename'
       @UI.identification: [ {
-        position: 50 ,
+        position: 40 ,
         label: 'File Name'
       } ]
       @UI.lineItem: [ {
-        position: 50 ,
+        position: 40 ,
         label: 'File Name'
       } ]
       @UI.selectionField: [ {
-        position: 50
+        position: 40
       } ]
-      filename,
- 
+      Filename,
+      @UI: {
 
+                fieldGroup: [ { qualifier: 'DocDetails', position: 30 } ]
+               }
+      @EndUserText.label: 'VAT'
+      @UI.identification: [ {
+        position: 30 ,
+        label: 'VAT'
+      } ]
+      @UI.lineItem: [ {
+        position: 30 ,
+        label: 'VAT'
+      } ]
+      @UI.selectionField: [ {
+        position: 30
+      } ]
+      VAT,
+      @UI: {
+               fieldGroup: [ {
+                   qualifier: 'XMLContent',
+                   position: 10,
+                   type: #WITH_URL,
+                   url: 'xmlAttachment'
+               } ]
+           }
+
+      @EndUserText.label: 'XML Content'
+      xmlAttachment,
+      MimeType,
+      FilenameZIP,
+      MimeTypeZip,
+      zipAttachment,
       ernam,
 
       @UI: {

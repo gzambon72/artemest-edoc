@@ -11,10 +11,18 @@ CLASS zcl_zoe_edoc DEFINITION
         !is_new       TYPE abap_bool DEFAULT abap_true
         !unit_test    TYPE abap_bool DEFAULT abap_true
         !filename     TYPE string OPTIONAL
-        !iv_content   TYPE zedoc_db-xdata OPTIONAL .
+        !iv_content   TYPE zedoc_db-xmldata OPTIONAL .
     METHODS execute_action
       IMPORTING
         !iv_action TYPE string .
+    METHODS data_init
+      IMPORTING
+        edoc_guid TYPE zunique_value OPTIONAL
+        edocflow  TYPE zedocflow DEFAULT 'EDOC'
+        is_new    TYPE abap_bool DEFAULT abap_true
+        unit_test TYPE abap_bool DEFAULT abap_true
+        filename  TYPE string OPTIONAL
+        content   TYPE zedoc_db-xmldata OPTIONAL .
   PROTECTED SECTION.
 
     DATA edocument TYPE zoe_edocument .
@@ -22,39 +30,47 @@ CLASS zcl_zoe_edoc DEFINITION
     DATA new TYPE abap_bool .
     DATA filename TYPE string.
     DATA zip_filename TYPE string.
+    DATA pdf_filename TYPE string.
     DATA action TYPE string .
     DATA file_guid TYPE zunique_value .
     DATA edoc_guid TYPE zunique_value .
-    DATA xcontent TYPE zedoc_db-xdata .
+
     DATA iv_content TYPE string .
-    DATA xzipcontent TYPE zedoc_db-pdfdata.
+    " zip
+    DATA xzipcontent TYPE zedoc_db-zipdata.
+* pdf
+    DATA pdfcontent TYPE zedoc_db-zipdata.
+* xml
+    DATA xcontent TYPE zedoc_db-xmldata .
+    DATA xmlcontentraw TYPE string.
+    DATA xml_header TYPE zoe_xml_data_extract.
     DATA edocflow TYPE zedocflow .
     DATA buffer TYPE zedoc_db .
   PRIVATE SECTION.
 
     METHODS xml_2_buffer .
     METHODS edoc_save_2_db .
-    METHODS xml_display .
-    METHODS pdf_display .
+
+
     METHODS create .
-    METHODS updateinvoice .
-    METHODS display_file .
+
     METHODS display_pdf .
     METHODS iv_park .
     METHODS iv_post .
-    METHODS upload_file .
-    METHODS upload_xml .
-    METHODS validate_source .
+
     METHODS delete .
+
+
+    METHODS data_init_for_test .
     METHODS init_data_for_unit_test.
     METHODS get_encode64_content_dummy RETURNING VALUE(e_xcontent) TYPE xstring.
     METHODS from_xml_to_zip IMPORTING lv_xml_string TYPE any.
-    methods FROM_ZIP_TO_XML
-    importing
-      !I_FILENAME type STRING
-      !I_ZIP type XSTRING
-    returning
-      value(LV_XML_STRING) type STRING .
+    METHODS from_zip_to_xml
+      IMPORTING
+        !i_filename          TYPE string
+        !i_zip               TYPE xstring
+      RETURNING
+        VALUE(lv_xml_string) TYPE string .
     METHODS init_data_from_xml IMPORTING lv_xml_string TYPE any.
     METHODS get_content_dummy RETURNING VALUE(e_content) TYPE string..
 ENDCLASS.
@@ -68,26 +84,15 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     me->new = is_new.
     me->iv_content = iv_content.
-    edocflow = iv_edocflow .
+    me->edocflow = iv_edocflow .
     me->filename = filename.
 
-
-
-**
-*      DATA flow TYPE zedoc_flow.
-*      flow  = VALUE #(  edocgroup = 'INBOUND' edocflow = iv_edocflow edocflowdescr = 'EDOCUMENT INCOMING INVOICE'   ).
-
-*      MODIFY zedoc_flow FROM @flow.
 
     CASE new.
       WHEN abap_true.
         CASE unit_test.
           WHEN abap_true.
-            DO 3 TIMES.
-              me->filename  = 'unit_test' && sy-index && '.xml'.
-              CONDENSE  me->filename NO-GAPS.
-              init_data_for_unit_test(  ).
-            ENDDO.
+            me->data_init_for_test(  ).
           WHEN abap_false.
             init_data_from_xml( me->iv_content ).
         ENDCASE.
@@ -101,8 +106,10 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
         SELECT SINGLE * FROM zoe_edocfile  WHERE file_guid = @me->edocument-file_guid INTO @me->edocumentfile.
         me->file_guid  = me->edocumentfile-file_guid.
         me->filename = me->edocumentfile-filename.
-        me->xcontent = me->buffer-xdata.
+        me->xcontent = me->buffer-xmldata.
     ENDCASE.
+
+
   ENDMETHOD.
 
 
@@ -421,25 +428,35 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   METHOD from_xml_to_zip .
 
     DATA xml_base64_x_encoded TYPE xstring.
-
-    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
-
-    CALL TRANSFORMATION id
-       SOURCE xml = xml_base64_encoded
-       RESULT xml = xml_base64_x_encoded.
-
-    me->xcontent = xml_base64_x_encoded.
-
-
+    DATA xml_utf8_encoded TYPE string.
 
     DATA(o_model) = NEW  zcl_sdi_xml_model( ).
+
+*    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
+*    DATA(xml_utf8_encoded) = cl_web_http_utility=>encode_utf8( lv_xml_string ).
+
+    DATA(xoutput) = o_model->get_encoded_xml( lv_xml_string  ).
+
+*    CALL TRANSFORMATION id
+*       SOURCE xml = lv_xml_string
+*       RESULT xml = xml_utf8_encoded.
+
+    me->xmlcontentraw = lv_xml_string.
+    me->xcontent = xoutput. "xml_base64_x_encoded.
+
+
 
     o_model->from_xml_to_zip(
     EXPORTING
       lv_xml_string = lv_xml_string
     IMPORTING
-      e_filename    = me->zip_filename
-      e_zip         = me->xzipcontent  )    .
+      e_filename_xml    = me->filename
+      e_filename_pdf = me->pdf_filename
+      e_filename_zip = me->zip_filename
+      e_zip         = me->xzipcontent
+      e_pdf         = me->pdfcontent  )    .
+
+    me->xml_header = o_model->get_xml_header(  ).
 
   ENDMETHOD.
   METHOD from_zip_to_xml.
@@ -490,7 +507,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *       RESULT xml = xml_base64_encoded.
 
 *    lv_xml_string = cl_web_http_utility=>decode_base64( xml_base64_encoded ).
-    lv_xml_string = cl_web_http_utility=>DECODE_UTF8( xml_base64_x_encoded ).
+    lv_xml_string = cl_web_http_utility=>decode_utf8( xml_base64_x_encoded ).
 
 
   ENDMETHOD.
@@ -499,25 +516,57 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     me->from_xml_to_zip(  lv_xml_string ).
 
     DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
-
     me->edoc_guid = unique_value.
     me->file_guid  = unique_value.
 
-    me->edocument = VALUE #(  zunique_value = me->edoc_guid   file_guid = file_guid  status = 1 statusdescr = 'Ricevuto da Intermediario' ).
+    me->edocument = VALUE #(  zunique_value = me->edoc_guid   file_guid = file_guid
+       status = 1 statusdescr = 'Ricevuto da Intermediario'
+       vatcode = me->xml_header-vatcode
+       cedente = me->xml_header-cedente
+       data_fattura = me->xml_header-data_fattura
+       importototaledocumento  = me->xml_header-importototaledocumento
+    ).
 
-    me->edocumentfile = VALUE #(  file_guid = file_guid zunique_value = me->edoc_guid   file_raw = me->xcontent
-       filename = me->zip_filename  mimetypexml = 'application/xml' xmldata = me->xcontent pdfdata = xzipcontent mimetypepdf = 'application/zip').
+    me->edocumentfile = VALUE #(  file_guid = file_guid zunique_value = me->edoc_guid
+       file_raw = me->xcontent
+       file_sraw = me->xmlcontentraw
+       filename = me->filename
+       filenamepdf = me->pdf_filename
+       filenamezip = me->zip_filename
+       mimetypexml = 'application/xml'
+       xmldata = me->xcontent
+       mimetypezip = 'application/zip'
+       zipdata = me->xzipcontent
+       mimetypepdf = 'application/pdf'
+       pdfdata = me->pdfcontent
+    ).
 
     me->xml_2_buffer( ).
+
   ENDMETHOD.
   METHOD init_data_for_unit_test.
 
 
-*      DELETE FROM zedoc_db.
-*      DELETE FROM zoe_edocument.
-*      DELETE FROM zoe_edocfile.
+    DATA flow TYPE TABLE OF zedoc_flow.
+    DATA group TYPE TABLE OF zedocgroup_db.
+
+
+    group  = VALUE #( (    edocgroup = 'INBOUND'  groupdescr = 'INCOMING INVOICES' )
+                           (  edocgroup = 'OUTBOUND'  groupdescr = 'OUTGOING INVOICES' ) ).
+
+    flow  = VALUE #( (    edocgroup = 'INBOUND'  edocflow = 'EDOCI' edocflowdescr = 'EDOCUMENT SUPPLIER INVOICE' )
+                        (  edocgroup = 'OUTBOUND'  edocflow = 'EDOCO' edocflowdescr = 'EDOCUMENT CUSTOMER INVOICE' ) ).
+
+    DELETE FROM zedocgroup_db.
+    DELETE FROM zedoc_flow.
+
+
+
+    MODIFY zedocgroup_db  FROM TABLE @group.
+    MODIFY zedoc_flow FROM TABLE @flow.
 *
-*  check 1 = 2.
+
+
 
     DATA(lv_xml_string) = me->get_content_dummy(  ).
 
@@ -543,9 +592,6 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD display_file.
-  ENDMETHOD.
-
 
   METHOD display_pdf.
   ENDMETHOD.
@@ -562,18 +608,18 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   METHOD execute_action.
     CASE  iv_action.
-      WHEN 'CREATE'. create( ).
-      WHEN 'UPDATEINVOICE'. updateinvoice( ).
-      WHEN 'DELETE'. delete( ).
-      WHEN 'DISPLAY_XML'. xml_display( ).
-      WHEN 'DISPLAY_PDF'. display_pdf( ).
-      WHEN 'IV_PARK'. iv_park( ).
-      WHEN 'IV_POST'  . iv_post( ).
-      WHEN 'UPLOAD_FILE'. upload_file( ).
-      WHEN 'UPLOAD_XML'. upload_xml( ).
-      WHEN 'VALIDATE_SOURCE'. validate_source( ).
+      WHEN 'CREATE'.
+        create( ).
+      WHEN 'DELETE'.
+        delete( ).
+      WHEN 'DISPLAY_PDF'.
+        display_pdf( ).
+      WHEN 'IV_PARK'.
+        iv_park( ).
+      WHEN 'IV_POST'  .
+        iv_post( ).
+      WHEN 'CREATE_UNIT_TEST'.
     ENDCASE.
-
   ENDMETHOD.
 
 
@@ -592,24 +638,25 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD pdf_display.
+
+  METHOD data_init.
+
+    me->edocflow = edocflow.
+    me->xcontent = content.
+    me->filename = filename.
+    me->edoc_guid = edoc_guid.
+
   ENDMETHOD.
 
-
-  METHOD updateinvoice.
-    edoc_save_2_db( ).
-  ENDMETHOD.
-
-
-  METHOD upload_file.
-  ENDMETHOD.
-
-
-  METHOD upload_xml.
-  ENDMETHOD.
-
-
-  METHOD validate_source.
+  METHOD  data_init_for_test.
+*            delete from zedoc_db.
+*            DELETE FROM zoe_edocument.
+*            DELETE FROM zoe_edocfile.
+    DO 3 TIMES.
+      me->filename  = 'artemest-passivo-unit-test_' && sy-index && '.xml'.
+      CONDENSE  me->filename NO-GAPS.
+      init_data_for_unit_test(  ).
+    ENDDO.
   ENDMETHOD.
 
 
@@ -620,9 +667,17 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     GET TIME STAMP FIELD DATA(tmstp).
 
     ls_data  = VALUE #( edocflow = me->edocflow   unique_value = me->edocumentfile-zunique_value
-                  mimetypexml = me->edocumentfile-mimetypexml xmldata = me->edocumentfile-xmldata filename = me->edocumentfile-filename
-                  pdfdata = me->edocumentfile-pdfdata mimetypepdf = me->edocumentfile-mimetypepdf
-                  xdata = me->edocumentfile-file_raw ernam = sy-uname erdat = sy-datum erzet = sy-uzeit tmstp = tmstp ).
+                  mimetypexml = me->edocumentfile-mimetypexml
+                  xmldata = me->edocumentfile-xmldata
+                  file_sraw = me->edocumentfile-file_sraw
+                  filename = me->edocumentfile-filename
+                  mimetypepdf = me->edocumentfile-mimetypepdf
+                  pdfdata = me->edocumentfile-pdfdata
+                  filenamepdf = me->edocumentfile-filenamepdf
+                  mimetypezip = me->edocumentfile-mimetypezip
+                  zipdata = me->edocumentfile-zipdata
+                  filenamezip = me->edocumentfile-filenamezip
+                  ernam = sy-uname erdat = sy-datum erzet = sy-uzeit tmstp = tmstp ).
 
     MODIFY zedoc_db FROM @ls_data.
     " COMMIT WORK..
@@ -631,9 +686,4 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD xml_display.
-
-
-  ENDMETHOD.
 ENDCLASS.

@@ -1,4 +1,4 @@
-unmanaged implementation in class zCL_edoc_view_bhv unique;
+unmanaged implementation in class zcL_edoc_view_bhv unique;
 
 define behavior for ZCDS_EDOC_VIEW alias ElectronicDocument
 lock master
@@ -7,7 +7,7 @@ authorization master ( instance )
   // Field Controls
   field ( readonly ) edocgroup, edocflow, unique_value,
   ernam, erdat, erzet, tmstp;
-  field ( mandatory ) bukrs;
+
 
   // Actions
   action ( features : instance ) pdf_display result [1] $self;

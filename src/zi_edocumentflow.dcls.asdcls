@@ -1,0 +1,5 @@
+@MappingRole: true
+define role ZI_EdocumentFlow {
+  grant select on ZI_EdocumentFlow
+  where ( ) = ASPECT pfcg_auth ( 'S_TABU_NAM', ACTVT = '03', TABLE = 'ZI_EDOCUMENTFLOW' );
+}

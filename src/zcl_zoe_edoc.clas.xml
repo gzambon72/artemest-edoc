@@ -4,8 +4,8 @@
   <asx:values>
    <VSEOCLASS>
     <CLSNAME>ZCL_ZOE_EDOC</CLSNAME>
-    <LANGU>I</LANGU>
-    <DESCRIPT>Edocument</DESCRIPT>
+    <LANGU>E</LANGU>
+    <DESCRIPT>Edocument Class</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

@@ -1,0 +1,51 @@
+@Metadata.layer: #CUSTOMER
+@UI: {
+  headerInfo: {
+    typeName: 'EdocumentFlow', 
+    typeNamePlural: 'EdocumentFlows', 
+    title: {
+      type: #STANDARD, 
+      label: 'Edocument (Flow)', 
+      value: 'Edocgroup'
+    }
+  }
+}
+annotate view ZI_EdocumentFlow with
+{
+  @UI.identification: [ {
+    position: 1 
+  } ]
+  @UI.lineItem: [ {
+    position: 1 
+  }, 
+  {
+    type: #FOR_ACTION, 
+    dataAction: 'CopyEdocumentFlow', 
+    label: 'Copy Selected Entry', 
+    invocationGrouping: #CHANGE_SET
+  } ]
+  @UI.facet: [ {
+    id: 'ZI_EdocumentFlow', 
+    purpose: #STANDARD, 
+    type: #IDENTIFICATION_REFERENCE, 
+    label: 'Edocument (Flow)', 
+    position: 1 
+  } ]
+  Edocgroup;
+  
+  @UI.identification: [ {
+    position: 2 
+  } ]
+  @UI.lineItem: [ {
+    position: 2 
+  } ]
+  Edocflow;
+  
+  @UI.identification: [ {
+    position: 3 
+  } ]
+  @UI.lineItem: [ {
+    position: 3 
+  } ]
+  Edocflowdescr;
+}
