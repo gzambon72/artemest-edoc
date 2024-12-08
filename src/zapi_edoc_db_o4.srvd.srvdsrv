@@ -7,5 +7,5 @@
   }
 }
 define service ZAPI_EDOC_DB_O4 provider contracts odata_v4_webapi {
-  expose ZC_EDOC_DB as Edocument;
+  expose ZC_EDOC_DB as EdocDB;
 }

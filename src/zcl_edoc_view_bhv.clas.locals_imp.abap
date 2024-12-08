@@ -54,7 +54,7 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
   METHOD uploadxml_model.
 
 
-   data(o_edoc) = NEW zcl_zoe_edoc( ).
+    DATA(o_edoc) = NEW zcl_zoe_edoc( ).
 
   ENDMETHOD.
 
@@ -104,6 +104,8 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
 
   METHOD document_post.
     DATA o_edoc TYPE REF TO zcl_zoe_edoc.
+    DATA o_dispatcher TYPE REF TO zcl_zoe_dispatcher.
+
 
     LOOP AT keys INTO DATA(key).
 
@@ -111,19 +113,21 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
 
       CHECK unique_value IS NOT INITIAL.
 
-      CREATE OBJECT o_edoc
-        EXPORTING
-          unit_test    = abap_false
-*         filename     = filename
-          iv_edoc_guid = unique_value
-*         iv_edocflow  = 'EDOC'
-          is_new       = abap_false
-**         iv_content   = xdata
-        .
-
-      o_edoc->execute_action( 'IV_POST' )  .
-
-      FREE o_edoc.
+      o_dispatcher = NEW zcl_zoe_dispatcher( iv_edoc_guid = unique_value  ).
+      o_dispatcher->execute_action(  'IV_POST' ).
+*      CREATE OBJECT o_edoc
+*        EXPORTING
+*          unit_test    = abap_false.
+**         filename     = filename
+*          iv_edoc_guid = unique_value
+**         iv_edocflow  = 'EDOC'
+*          is_new       = abap_false
+***         iv_content   = xdata
+*        .
+*
+*      o_edoc->execute_action( 'IV_POST' )  .
+*
+*      FREE o_edoc.
 
     ENDLOOP.
 

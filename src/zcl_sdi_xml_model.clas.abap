@@ -398,9 +398,7 @@ CLASS zcl_sdi_xml_model DEFINITION
         !iv_xml        TYPE string
       RETURNING
         VALUE(ev_json) TYPE string .
-    METHODS get_xml
-      RETURNING
-        VALUE(ev_zip) TYPE xstring .
+
     METHODS get_encoded_xml
       IMPORTING
         !xresult      TYPE any
@@ -428,6 +426,7 @@ CLASS zcl_sdi_xml_model DEFINITION
     METHODS from_xml_to_zip
       IMPORTING
         !lv_xml_string  TYPE string
+        !i_filename_xml TYPE string OPTIONAL
       EXPORTING
         !e_filename_pdf TYPE string
         !e_filename_xml TYPE string
@@ -781,6 +780,7 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
     e_filename_pdf = ls_allegato-nome_attachment.
     e_filename_zip = e_filename_pdf.
 
+    e_filename_xml = i_filename_xml.
 *    DATA(zip_filename) = ls_allegato-nome_attachment.
 
     REPLACE 'PDF' WITH 'ZIP' INTO e_filename_zip .
@@ -879,17 +879,6 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
 
     xml_header = me->xml_header.
   ENDMETHOD.
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZCL_SDI_XML_MODEL->GET_XML
-* +-------------------------------------------------------------------------------------------------+
-* | [<-()] EV_ZIP                         TYPE        XSTRING
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  METHOD get_xml.
-
-
-
-
-  ENDMETHOD.
 
   METHOD get_encoded_xml.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -951,8 +940,10 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
     me->ls_testata   = ls_fattura-testata.
     lt_posizioni = ls_fattura-posizioni.
     lt_allegati  = ls_fattura-allegati.
-    me->ls_allegato = lt_allegati[ 1 ].
-    lt_riepilogo = ls_fattura-riepilogo.
+    IF lt_allegati IS NOT INITIAL.
+      me->ls_allegato = lt_allegati[ 1 ] .
+      lt_riepilogo = ls_fattura-riepilogo.
+    ENDIF.
 
 
 *    CALL TRANSFORMATION id

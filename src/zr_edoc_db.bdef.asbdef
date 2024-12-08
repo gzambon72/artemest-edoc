@@ -1,6 +1,6 @@
 managed implementation in class ZBP_R_EDOC_DB unique;
 strict ( 2 );
-define behavior for ZR_EDOC_DB alias Edocument
+define behavior for ZR_EDOC_DB alias EdocDB
 persistent table ZEDOC_DB
 etag master LastChanged
 lock master
@@ -30,21 +30,25 @@ authorization master( global )
   {
     Edocflow = edocflow;
     UniqueValue = unique_value;
-    Xdata = xdata;
     Filename = filename;
+    Filenamezip = filenamezip;
     Mimetypexml = mimetypexml;
     Xmldata = xmldata;
-    Mimetypepdf = mimetypepdf;
-    Pdfdata = pdfdata;
-    CreatedOn = created_on;
-    CreationUser = creation_user;
-    CreatedBy = created_by;
-    Lastchangedby = lastchangedby;
-    LocalLastChanged = local_last_changed;
-    LastChanged = last_changed;
+    Mimetypezip = mimetypezip;
+    Zipdata = zipdata;
     Ernam = ernam;
     Erdat = erdat;
     Erzet = erzet;
     Tmstp = tmstp;
+    CreatedOn = created_on;
+    CreatedBy = created_by;
+    CreationUser = creation_user;
+    Lastchangedby = lastchangedby;
+    LocalLastChanged = local_last_changed;
+    LastChanged = last_changed;
+    Mimetypepdf = mimetypepdf;
+    Filenamepdf = filenamepdf;
+    Pdfdata = pdfdata;
+    FileSraw = file_sraw;
   }
 }

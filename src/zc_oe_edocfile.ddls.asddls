@@ -9,10 +9,20 @@ define root view entity ZC_OE_EDOCFILE
   ZuniqueValue,
   SeqNo,
   Filename,
+  Filenamezip,
   Mimetypexml,
   Xmldata,
+  Mimetypezip,
+  Zipdata,
+  CreatedOn,
+  CreatedBy,
+  Lastchangedby,
+  LocalLastChanged,
+  LastChanged,
+  FileRaw,
   Mimetypepdf,
+  Filenamepdf,
   Pdfdata,
-  FileRaw
+  FileSraw
   
 }

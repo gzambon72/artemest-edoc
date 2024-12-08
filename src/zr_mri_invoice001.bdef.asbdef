@@ -1,0 +1,53 @@
+managed implementation in class ZBP_R_MRI_INVOICE001 unique;
+strict ( 2 );
+with draft;
+define behavior for ZR_MRI_INVOICE001 alias Invoice
+persistent table zmri_invoice
+draft table zmri_invice001_d
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master ( global )
+
+{
+  field ( mandatory : create )
+  Invoice;
+
+  field ( readonly )
+  LocalCreatedBy,
+  LocalCreatedAt,
+  LocalLastChangedBy,
+  LocalLastChangedAt,
+  LastChangedAt;
+
+  field ( readonly : update )
+  Invoice;
+
+
+  create;
+  update;
+  delete;
+
+  action ( features : instance ) document_post result [1] $self;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  mapping for zmri_invoice
+    {
+      Invoice            = invoice;
+      Comments           = comments;
+      Mimetypepdf        = mimetypepdf;
+      Filenamepdf        = filenamepdf;
+      Pdfdata            = pdfdata;
+      Purchaseorder      = purchaseorder;
+      Price              = price;
+      LocalCreatedBy     = local_created_by;
+      LocalCreatedAt     = local_created_at;
+      LocalLastChangedBy = local_last_changed_by;
+      LocalLastChangedAt = local_last_changed_at;
+      LastChangedAt      = last_changed_at;
+    }
+}

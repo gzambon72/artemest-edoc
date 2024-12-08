@@ -1,6 +1,6 @@
 projection implementation in class ZBP_C_EDOC_DB unique;
 strict ( 2 );
-define behavior for ZC_EDOC_DB alias Edocument
+define behavior for ZC_EDOC_DB alias EdocDB
 use etag
 
 {

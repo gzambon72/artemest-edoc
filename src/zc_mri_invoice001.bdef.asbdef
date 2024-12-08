@@ -1,0 +1,18 @@
+projection implementation in class ZBP_C_MRI_INVOICE001 unique;
+strict ( 2 );
+use draft;
+define behavior for ZC_MRI_INVOICE001 alias Invoice
+use etag
+
+{
+  use create;
+  use update;
+  use delete;
+
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Resume;
+  use action Prepare;
+  use action document_post;
+}

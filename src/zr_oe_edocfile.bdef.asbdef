@@ -1,13 +1,20 @@
 managed implementation in class ZBP_R_OE_EDOCFILE unique;
 strict ( 2 );
-define behavior for ZR_OE_EDOCFILE alias EdocFile
+define behavior for ZR_OE_EDOCFILE alias EdocumentFile
 persistent table ZOE_EDOCFILE
+etag master LastChanged
 lock master
 authorization master( global )
 
 {
   field ( mandatory : create )
    FileGuid;
+
+//  field ( readonly )
+//   CreatedBy,
+//   Lastchangedby,
+//   LocalLastChanged,
+//   LastChanged;
 
   field ( readonly : update )
    FileGuid;
@@ -23,10 +30,20 @@ authorization master( global )
     ZuniqueValue = zunique_value;
     SeqNo = seq_no;
     Filename = filename;
+    Filenamezip = filenamezip;
     Mimetypexml = mimetypexml;
     Xmldata = xmldata;
-    Mimetypepdf = mimetypepdf;
-    Pdfdata = pdfdata;
+    Mimetypezip = mimetypezip;
+    Zipdata = zipdata;
+    CreatedOn = created_on;
+    CreatedBy = created_by;
+    Lastchangedby = lastchangedby;
+    LocalLastChanged = local_last_changed;
+    LastChanged = last_changed;
     FileRaw = file_raw;
+    Mimetypepdf = mimetypepdf;
+    Filenamepdf = filenamepdf;
+    Pdfdata = pdfdata;
+    FileSraw = file_sraw;
   }
 }

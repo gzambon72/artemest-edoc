@@ -2,22 +2,30 @@
 @EndUserText.label: '###GENERATED Core Data Service Entity'
 @AccessControl.authorizationCheck: #CHECK
 define root view entity ZC_EDOC_DB
-  provider contract transactional_query
+  provider contract TRANSACTIONAL_QUERY
   as projection on ZR_EDOC_DB
 {
   key Edocflow,
   key UniqueValue,
-  Xdata,
   Filename,
+  Filenamezip,
   Mimetypexml,
   Xmldata,
-  Mimetypepdf,
-  Pdfdata,
+  Mimetypezip,
+  Zipdata,
+  Ernam,
+  Erdat,
+  Erzet,
+  Tmstp,
   CreatedOn,
-  CreationUser,
   CreatedBy,
+  CreationUser,
   Lastchangedby,
   LocalLastChanged,
-  LastChanged
+  LastChanged,
+  Mimetypepdf,
+  Filenamepdf,
+  Pdfdata,
+  FileSraw
   
 }

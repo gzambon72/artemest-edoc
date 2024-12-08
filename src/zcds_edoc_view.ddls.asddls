@@ -64,4 +64,4 @@ define root view entity ZCDS_EDOC_VIEW
       DocDB.tmstp
 }
 where
-  DocDB.edocflow = 'EDOC'
+  DocDB.edocflow = 'EDOCI'

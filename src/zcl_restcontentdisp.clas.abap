@@ -51,7 +51,6 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
           WHEN  'CREATE_UNIT_TEST'.
 
             DATA(o_dispatcher) = NEW zcl_zoe_dispatcher(  ).
-
             o_dispatcher->execute_action(  action ).
             response->set_text( '<h1>CREATE_UNIT_TEST ---> SUCCESS<h1>' ).
           WHEN 'UPLOAD-XML'.

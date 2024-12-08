@@ -1,0 +1,38 @@
+managed implementation in class ZBP_R_OE_EDOCUMENT unique;
+strict ( 2 );
+define behavior for ZR_OE_EDOCUMENT alias Edocument
+persistent table ZOE_EDOCUMENT
+lock master
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   UniqueValue;
+
+  field ( readonly : update )
+   UniqueValue;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for ZOE_EDOCUMENT
+  {
+    UniqueValue = zunique_value;
+    SeqNo = seq_no;
+    Bukrs = bukrs;
+    Land = land;
+    FileGuid = file_guid;
+    Status = status;
+    Statusdescr = statusdescr;
+    Ernam = ernam;
+    Erdat = erdat;
+    Erzet = erzet;
+    Tmstp = tmstp;
+    Vatcode = vatcode;
+    Cedente = cedente;
+    DataFattura = data_fattura;
+    Importototaledocumento = importototaledocumento;
+  }
+}
