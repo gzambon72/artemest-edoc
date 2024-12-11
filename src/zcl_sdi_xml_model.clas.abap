@@ -761,8 +761,7 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
     DATA xml_base64_x_encoded TYPE xstring.
     DATA pdf_base64_x_decoded TYPE xstring.
 
-*    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
-*    DATA(xml_base64_encoded) =   lv_xml_string  .
+
     DATA(xml_utf8_encoded) = cl_web_http_utility=>encode_utf8( lv_xml_string ).
     parse_xml( xml_utf8_encoded )    .
     get_testata( IMPORTING testata = DATA(ls_testata) ).
@@ -781,7 +780,7 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
     e_filename_zip = e_filename_pdf.
 
     e_filename_xml = i_filename_xml.
-*    DATA(zip_filename) = ls_allegato-nome_attachment.
+
 
     REPLACE 'PDF' WITH 'ZIP' INTO e_filename_zip .
     REPLACE 'PDF' WITH 'XML' INTO e_filename_xml .
@@ -945,13 +944,6 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
       lt_riepilogo = ls_fattura-riepilogo.
     ENDIF.
 
-
-*    CALL TRANSFORMATION id
-*      SOURCE fattura = ls_fattura
-*      RESULT xml = output.
-
-
-    "Serializzazione in JSON
 
     "Serializzazione in JSON
     output = /ui2/cl_json=>serialize(

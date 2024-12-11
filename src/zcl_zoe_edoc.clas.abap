@@ -91,32 +91,6 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   METHOD constructor.
 
-*    me->new = is_new.
-*    me->iv_content = iv_content.
-*    me->edocflow = iv_edocflow .
-*    me->filename = filename.
-
-
-*    CASE new.
-*      WHEN abap_true.
-*        CASE unit_test.
-*          WHEN abap_true.
-*            me->data_init_for_test(  ).
-*          WHEN abap_false.
-*            init_data_from_xml( me->iv_content ).
-*        ENDCASE.
-
-*      WHEN abap_false.
-*        me->edoc_guid = iv_edoc_guid.
-*
-*        SELECT SINGLE * FROM zedoc_db WHERE unique_value = @me->edoc_guid INTO @me->buffer .
-*        CHECK sy-subrc = 0.
-*        SELECT SINGLE * FROM zoe_edocument  WHERE zunique_value = @me->edoc_guid INTO @me->edocument.
-*        SELECT SINGLE * FROM zoe_edocfile  WHERE file_guid = @me->edocument-file_guid INTO @me->edocumentfile.
-*        me->file_guid  = me->edocumentfile-file_guid.
-*        me->filename = me->edocumentfile-filename.
-*        me->xcontent = me->buffer-xmldata.
-*    ENDCASE.
 
 
   ENDMETHOD.

@@ -5,17 +5,19 @@ define root view entity ZR_MRI_INVOICE001
   as select from zmri_invoice as Invoice
 {
   key invoice               as Invoice,
-      comments              as Comments,
+      comments              as Comments,      
       @Semantics.mimeType: true
+      @UI.hidden: true
       mimetypepdf           as Mimetypepdf,
       ///// PDF /////
       @Consumption.semanticObject: 'Document'
-      @EndUserText.label: 'FilenamePDF'
+      @EndUserText.label: 'Filename ZIP'
       filenamepdf           as Filenamepdf,
       @Semantics.largeObject:
                        { mimeType: 'Mimetypepdf',
                        fileName: 'Filenamepdf',
                        contentDispositionPreference: #INLINE }
+      @EndUserText.label: 'ZIP'
       pdfdata               as Pdfdata,
       purchaseorder         as Purchaseorder,
       price                 as Price,

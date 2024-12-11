@@ -103,7 +103,7 @@ CLASS lhc_zr_mri_invoice001 IMPLEMENTATION.
       LOOP AT edocument_t INTO edocument.
 
         ls_edocument-UniqueValue = edocument-zunique_value.
-        ls_edocument-Bukrs = edocument-bukrs.
+*        ls_edocument-Bukrs = edocument-bukrs.
         ls_edocument-SeqNo = edocument-seq_no.
         ls_edocument-Land = edocument-land.
         ls_edocument-FileGuid = edocument-file_guid.
@@ -127,7 +127,7 @@ CLASS lhc_zr_mri_invoice001 IMPLEMENTATION.
                  %control = VALUE #(
                    UniqueValue = if_abap_behv=>mk-on
                    SeqNo = if_abap_behv=>mk-on
-                   Bukrs = if_abap_behv=>mk-on
+*                   Bukrs = if_abap_behv=>mk-on
                    Land = if_abap_behv=>mk-on
                    FileGuid = if_abap_behv=>mk-on
                    Status = if_abap_behv=>mk-on
@@ -207,7 +207,7 @@ CLASS lhc_zr_mri_invoice001 IMPLEMENTATION.
         " Messaggio di successo
         APPEND VALUE #( %msg = new_message_with_text(
                          severity = if_abap_behv_message=>severity-success
-                         text     = 'Document created successfully in ZCDS_EDOC_VIEW'
+                         text     = 'Document created successfully in OCRA Edocument'
                        ) ) TO reported-invoice.
       ENDLOOP.
     ENDLOOP.

@@ -1,0 +1,4 @@
+@EndUserText.label: 'Invoice File Attachment UI'
+define service ZC_MRI_INVOICE001_API {
+  expose ZC_MRI_INVOICE001 as Invoice;
+}

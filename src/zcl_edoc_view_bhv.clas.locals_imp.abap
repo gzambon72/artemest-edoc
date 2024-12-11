@@ -115,19 +115,6 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
 
       o_dispatcher = NEW zcl_zoe_dispatcher( iv_edoc_guid = unique_value  ).
       o_dispatcher->execute_action(  'IV_POST' ).
-*      CREATE OBJECT o_edoc
-*        EXPORTING
-*          unit_test    = abap_false.
-**         filename     = filename
-*          iv_edoc_guid = unique_value
-**         iv_edocflow  = 'EDOC'
-*          is_new       = abap_false
-***         iv_content   = xdata
-*        .
-*
-*      o_edoc->execute_action( 'IV_POST' )  .
-*
-*      FREE o_edoc.
 
     ENDLOOP.
 

@@ -7,7 +7,7 @@ define root view entity ZC_OE_EDOCUMENT
 {
   key UniqueValue,
   SeqNo,
-  Bukrs,
+//  Bukrs,
   Land,
   FileGuid,
   Status,

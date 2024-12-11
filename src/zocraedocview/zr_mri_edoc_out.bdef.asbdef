@@ -1,9 +1,9 @@
-managed implementation in class ZBP_R_MRI_INVOICE001 unique;
+managed implementation in class ZBP_R_MRI_EDOC_OUT unique;
 strict ( 2 );
 with draft;
-define behavior for ZR_MRI_INVOICE001 alias Invoice
-persistent table zmri_invoice
-draft table zmri_invice001_d
+define behavior for ZR_MRI_EDOC_OUT alias EdocFile
+persistent table zmri_edoc_out
+draft table zmri_edoc_out_d
 etag master LocalLastChangedAt
 lock master total etag LastChangedAt
 authorization master ( global )
@@ -27,7 +27,10 @@ authorization master ( global )
   update;
   delete;
 
-  action ( features : instance ) document_post result [1] $self;
+  action ( features : instance )   document_download  ;
+  static action zip_all  ;
+  action ( features : global )   zip_downlaod  ;
+//   action ( features : global )  zip_all result [0..*] $self;
 
   draft action Activate optimized;
   draft action Discard;
@@ -35,18 +38,18 @@ authorization master ( global )
   draft action Resume;
   draft determine action Prepare;
 
-  mapping for zmri_invoice
+  mapping for zmri_edoc_out
     {
       Invoice            = invoice;
       Comments           = comments;
-      Mimetypepdf        = mimetypepdf;
-      Filenamepdf        = filenamepdf;
-      Purchaseorder      = purchaseorder;
-      Price              = price;
+      Mimetypezip        = mimetypezip;
+      Filenamezip        = filenamezip;
+      Zipdata            = zipdata;
       LocalCreatedBy     = local_created_by;
       LocalCreatedAt     = local_created_at;
       LocalLastChangedBy = local_last_changed_by;
       LocalLastChangedAt = local_last_changed_at;
       LastChangedAt      = last_changed_at;
+      FromEdocCustom     = from_edoc_custom;
     }
 }

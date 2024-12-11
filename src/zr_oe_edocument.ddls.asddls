@@ -2,7 +2,7 @@
 @Metadata.allowExtensions: true
 @EndUserText.label: '###GENERATED Core Data Service Entity'
 define root view entity ZR_OE_EDOCUMENT
-  as select from ZOE_EDOCUMENT as Edocument
+  as select from zoe_edocument as Edocument
 {
   key zunique_value as UniqueValue,
   seq_no as SeqNo,
