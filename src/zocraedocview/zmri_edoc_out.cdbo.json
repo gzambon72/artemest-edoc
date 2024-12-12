@@ -1,0 +1,62 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "ZMRI_EDOC_OUT",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "objectType": "TABL",
+    "objectName": "ZMRI_EDOC_OUT"
+  },
+  "fields": [
+    {
+      "name": "CLIENT",
+      "nature": "general"
+    },
+    {
+      "name": "INVOICE",
+      "nature": "general"
+    },
+    {
+      "name": "COMMENTS",
+      "nature": "general"
+    },
+    {
+      "name": "MIMETYPEZIP",
+      "nature": "general"
+    },
+    {
+      "name": "FILENAMEZIP",
+      "nature": "general"
+    },
+    {
+      "name": "ZIPDATA",
+      "nature": "general"
+    },
+    {
+      "name": "LOCAL_CREATED_BY",
+      "nature": "general"
+    },
+    {
+      "name": "LOCAL_CREATED_AT",
+      "nature": "general"
+    },
+    {
+      "name": "LOCAL_LAST_CHANGED_BY",
+      "nature": "general"
+    },
+    {
+      "name": "LOCAL_LAST_CHANGED_AT",
+      "nature": "general"
+    },
+    {
+      "name": "LAST_CHANGED_AT",
+      "nature": "general"
+    },
+    {
+      "name": "FROM_EDOC_CUSTOM",
+      "nature": "general"
+    }
+  ]
+}

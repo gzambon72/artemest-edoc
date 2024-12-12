@@ -1,0 +1,5 @@
+@EndUserText.label: 'V4_WEB'
+define service ZINV_I_V4_WEB
+  provider contracts odata_v4_webapi {
+  expose ZC_MRI_INVOICE001 as Invoice;
+}

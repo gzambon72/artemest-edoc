@@ -9,6 +9,10 @@ lock master total etag LastChangedAt
 authorization master ( global )
 
 {
+
+  action ( features : instance ) document_download result[1] $self;
+//  action ( features : global ) zip_all result [0..*] $self;
+
   field ( mandatory : create )
   Invoice;
 
@@ -27,10 +31,10 @@ authorization master ( global )
   update;
   delete;
 
-  action ( features : instance )   document_download  ;
-  static action zip_all  ;
-  action ( features : global )   zip_downlaod  ;
-//   action ( features : global )  zip_all result [0..*] $self;
+
+
+
+
 
   draft action Activate optimized;
   draft action Discard;

@@ -1,4 +1,4 @@
-projection implementation in class ZBP_C_MRI_INVOICE001 unique;
+projection;
 strict ( 2 );
 use draft;
 define behavior for ZC_MRI_INVOICE001 alias Invoice

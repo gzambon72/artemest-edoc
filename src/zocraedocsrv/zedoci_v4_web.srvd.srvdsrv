@@ -1,0 +1,5 @@
+@EndUserText.label: 'Electronic Document Service Definition'
+define service ZEDOCI_V4_WEB
+  provider contracts odata_v4_webapi {
+  expose ZCDS_EDOC_VIEW_PROJ_NEW as ElectronicDocument;
+}

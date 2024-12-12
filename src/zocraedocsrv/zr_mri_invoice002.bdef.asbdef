@@ -1,0 +1,44 @@
+managed implementation in class ZBP_R_MRI_INVOICE002 unique;
+strict ( 2 );
+define behavior for ZR_MRI_INVOICE002 alias Invoice
+persistent table ZMRI_INVOICE
+etag master LocalLastChangedAt
+lock master
+authorization master( global )
+
+{
+  field ( mandatory : create )
+   Invoice;
+
+  field ( readonly )
+   LocalCreatedBy,
+   LocalCreatedAt,
+   LocalLastChangedBy,
+   LocalLastChangedAt,
+   LastChangedAt;
+
+  field ( readonly : update )
+   Invoice;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for ZMRI_INVOICE
+  {
+    Invoice = invoice;
+    Comments = comments;
+    Mimetypepdf = mimetypepdf;
+    Filenamepdf = filenamepdf;
+    Pdfdata = pdfdata;
+    Purchaseorder = purchaseorder;
+    Price = price;
+    LocalCreatedBy = local_created_by;
+    LocalCreatedAt = local_created_at;
+    LocalLastChangedBy = local_last_changed_by;
+    LocalLastChangedAt = local_last_changed_at;
+    LastChangedAt = last_changed_at;
+    FromEdoc = from_edoc;
+  }
+}

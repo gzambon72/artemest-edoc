@@ -3,12 +3,12 @@ CLASS zcl_zoe_edoc DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-      DATA edocument TYPE zoe_Edocument READ-ONLY.
-      DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
-      DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
-      DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
-      DATA buffer TYPE zedoc_db.
-      DATA buffer_t TYPE zedoc_db_t.
+    DATA edocument TYPE zoe_Edocument READ-ONLY.
+    DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
+    DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
+    DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
+    DATA buffer TYPE zedoc_db.
+    DATA buffer_t TYPE zedoc_db_t.
     METHODS constructor
       IMPORTING
         !iv_edoc_guid TYPE zunique_value OPTIONAL
@@ -61,7 +61,9 @@ CLASS zcl_zoe_edoc DEFINITION
 
 *** ACTION
     METHODS a_create .
+    METHODS a_create_from_rest .
     METHODS a_create_from_invoice .
+    METHODS a_create_from_invoice_rest .
     METHODS a_display_pdf .
     METHODS a_park .
     METHODS a_post .
@@ -530,9 +532,14 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     me->from_xml_to_zip(  lv_xml_string ).
 
-    DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
-    me->edoc_guid = unique_value.
-    me->file_guid  = unique_value.
+
+    IF  me->edoc_guid IS INITIAL.
+      DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
+      me->edoc_guid = unique_value.
+    ENDIF.
+
+    me->file_guid  = me->edoc_guid  .
+
 
     me->edocument = VALUE #(  zunique_value = me->edoc_guid   file_guid = file_guid
        status = 1 statusdescr = 'Ricevuto da Intermediario'
@@ -567,7 +574,73 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     init_data_from_xml( me->xmlcontentraw ).
     edoc_save_2_db( ).
   ENDMETHOD.
+  METHOD a_create_from_rest.
+*    init_data_from_xml( me->xmlcontentraw ).
+*    edoc_save_2_db( ).
+** save invoice in ZMRI_INVOICE
+    DATA lv_filename TYPE string.
+    DATA lv_zip TYPE xstring.
+    DATA xcontent TYPE xstring.
+    DATA wa_inv_i TYPE zmri_invoice.
+    DATA wa_inv_d TYPE zmri_invoice_d.
+    DATA wa_inv_cds TYPE zr_mri_invoice001.
 
+*    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
+    CONSTANTS c_mime_xml TYPE string VALUE 'application/xml' .
+
+    DATA(invoice) = 'REST-' && me->edoc_guid.
+
+*    DATA(lo_zip) = NEW cl_abap_zip( ).
+*
+*    lo_zip->add( name    = lv_filename content = me->xcontent ). "PDF
+*    lv_zip = lo_zip->save( ).
+
+    lv_zip = me->xcontent.
+
+    wa_inv_i = VALUE #(
+         invoice = invoice Filenamepdf =  me->filename
+         pdfdata = lv_zip
+         mimetypepdf = c_mime_xml
+         comments = 'unit test da REST 01' ).
+
+
+    DELETE FROM zmri_invoice WHERE  local_created_by IS NULL.
+    DELETE FROM zmri_invoice_d WHERE hasactiveentity IS NULL.
+
+    MOVE-CORRESPONDING wa_inv_i TO wa_inv_d.
+    wa_inv_d-hasactiveentity = abap_true.
+
+    MODIFY zmri_invoice FROM @wa_inv_i.
+    MODIFY zmri_invoice_d FROM @wa_inv_d.
+    COMMIT WORK.
+
+    me->invoice = invoice.
+    me->a_create_from_invoice_rest(  ).
+
+
+  ENDMETHOD.
+  METHOD a_create_from_invoice_rest.
+    DATA s_invoice TYPE zmri_invoice.
+
+    SELECT SINGLE * FROM zmri_invoice
+      WHERE invoice = @me->invoice
+       INTO @s_invoice.
+
+
+    DATA(lv_string) = xco_cp=>xstring( s_invoice-pdfdata
+          )->as_string( xco_cp_character=>code_page->utf_8
+          )->value.
+
+    me->xmlcontentraw = lv_string.
+    CLEAR me->invoice.
+    init_data_from_xml( me->xmlcontentraw ).
+
+    APPEND me->edocument TO me->edocument_t.
+    APPEND me->edocumentfile TO me->edocumentfile_t.
+    APPEND me->buffer TO me->buffer_t.
+
+    me->edoc_save_2_db( ).
+  ENDMETHOD.
   METHOD a_create_from_invoice.
 
     DATA lo_zip  TYPE REF TO cl_abap_zip.
@@ -610,9 +683,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
         me->filename = xml_filename.
         me->xmlcontentraw = lv_string.
         init_data_from_xml( me->xmlcontentraw ).
-        append me->edocument to me->edocument_t.
-        append me->edocumentfile to me->edocumentfile_t.
-        append me->buffer to me->buffer_t.
+        APPEND me->edocument TO me->edocument_t.
+        APPEND me->edocumentfile TO me->edocumentfile_t.
+        APPEND me->buffer TO me->buffer_t.
       ENDIF.
     ENDLOOP.
 
@@ -774,6 +847,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   METHOD execute_action.
     CASE  iv_action.
+      WHEN 'CREATE_FROM_REST'.
+        a_create_from_rest(  ).
       WHEN 'CREATE'.
         IF invoice IS INITIAL.
           a_create( ).

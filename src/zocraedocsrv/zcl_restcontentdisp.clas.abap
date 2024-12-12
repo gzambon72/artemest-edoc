@@ -16,9 +16,10 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
   METHOD if_http_service_extension~handle_request.
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
-
+    DATA xcontent TYPE xstring.
     DATA(action) = request->get_header_field( 'ACTION' ).
-
+    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
+    DATA o_dispatcher TYPE REF TO zcl_zoe_dispatcher.
     DATA(path_info) =  request->get_header_field( i_name = '~path_info' ).
     TRY.
 
@@ -30,6 +31,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
         TRANSLATE path_info TO UPPER CASE .
 
         CASE  path_info.
+          WHEN 'CREATE_UNIT_TEST_ZIP'. action = path_info.
           WHEN 'UNIT-TEST-ZIP'.
             lv_request_body = o_model->get_content_dummy(  ).
             action = 'ZIP'.
@@ -48,9 +50,33 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
         DATA o_edoc TYPE REF TO zcl_zoe_edoc.
 
         CASE action.
+
+          WHEN  'CREATE_UNIT_TEST_ZIP'.
+            SELECT * FROM zedoc_db INTO @DATA(wa) .
+            ENDSELECT.
+
+            DATA(content) = wa-file_sraw .
+            DATA xml_base64_x_encoded TYPE xstring.
+
+
+            xml_base64_x_encoded = wa-xmldata.
+
+            lv_filename = wa-filename.
+
+            DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
+
+            o_dispatcher = NEW zcl_zoe_dispatcher(
+               iv_edoc_guid = unique_value
+               xcontent =  xml_base64_x_encoded
+               content = wa-file_sraw
+               filename = lv_filename ).
+
+            o_dispatcher->execute_action(   'CREATE_FROM_REST' ).
+            response->set_text( '<h1>CREATE_UNIT_TEST ---> SUCCESS to STAGING and EDOCUMENT<h1>' ).
+
           WHEN  'CREATE_UNIT_TEST'.
 
-            DATA(o_dispatcher) = NEW zcl_zoe_dispatcher(  ).
+            o_dispatcher  = NEW zcl_zoe_dispatcher(  ).
             o_dispatcher->execute_action(  action ).
             response->set_text( '<h1>CREATE_UNIT_TEST ---> SUCCESS<h1>' ).
           WHEN 'UPLOAD-XML'.
@@ -73,8 +99,9 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
 
           WHEN 'ZIP-GET'.
 
-            SELECT * FROM zedoc_db INTO @DATA(wa) UP TO 1 ROWS.
+            SELECT * FROM zedoc_db INTO  @wa  UP TO 1 ROWS.
             ENDSELECT.
+
             lv_zip   = wa-zipdata.
 
             lv_filename = 'test-download-da-db.zip'.

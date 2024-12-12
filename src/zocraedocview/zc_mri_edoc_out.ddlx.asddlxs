@@ -24,13 +24,12 @@ annotate view ZC_MRI_EDOC_OUT with
   } ]
   @UI.lineItem: [ {
   position: 10
-  },
-  { type: #FOR_ACTION, dataAction: 'document_download', label: 'Download XML to ZIP', position: 3 } ,
-  { type: #FOR_ACTION, dataAction: 'zip_downlaod', label: 'zip_downlaod', position: 4 } ,
-  { type: #FOR_ACTION, dataAction: 'zip_all', label: 'ZIP ALL', position: 5 } ]
-  @UI.selectionField: [ {
-  position: 10
-  }]
+  }
+
+  ,{ type: #FOR_ACTION, dataAction: 'document_download', label: 'Download ZIPPED', position: 4 }
+  //  { type: #FOR_ACTION, dataAction: 'zip_all', label: 'ZIP ALL', position: 5 }
+  ]
+
   Invoice;
   @EndUserText.label: 'Comments'
   @UI.identification: [ {
@@ -128,6 +127,6 @@ annotate view ZC_MRI_EDOC_OUT with
   position: 120
   } ]
   LastChangedAt;
- 
+
 
 }

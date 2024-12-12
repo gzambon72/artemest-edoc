@@ -14,9 +14,9 @@ use etag
   use action Discard;
   use action Resume;
   use action Prepare;
+
+//  use action zip_all;
   use action document_download;
-  use action zip_all;
-  use action zip_downlaod;
 
 
 }

@@ -31,10 +31,7 @@ CLASS zcl_zoe_dispatcher DEFINITION
     DATA edoc_guid TYPE zunique_value .
     DATA o_edoc TYPE REF TO zcl_zoe_edoc.
 
-
 ENDCLASS.
-
-
 
 CLASS zcl_zoe_dispatcher IMPLEMENTATION.
 
