@@ -425,7 +425,8 @@ CLASS zcl_sdi_xml_model DEFINITION
         VALUE(lv_xml_string) TYPE string .
     METHODS from_xml_to_zip
       IMPORTING
-        !lv_xml_string  TYPE string
+        !lv_xml_string  TYPE string optional
+        !lv_xml_xstring  TYPE xstring optional
         !i_filename_xml TYPE string OPTIONAL
       EXPORTING
         !e_filename_pdf TYPE string
@@ -787,7 +788,8 @@ CLASS zcl_sdi_xml_model IMPLEMENTATION.
 
     DATA(lo_zip) = NEW cl_abap_zip( ).
     lo_zip->add( name    = e_filename_pdf  content = pdf_base64_x_decoded ). "PDF
-    lo_zip->add( name    = e_filename_xml  content = xml_utf8_encoded ). " XML
+*    lo_zip->add( name    = e_filename_xml  content = xml_utf8_encoded ). " XML
+    lo_zip->add( name    = e_filename_xml  content = lv_xml_xstring ). " XML
     e_zip = lo_zip->save( ).
   ENDMETHOD.
 

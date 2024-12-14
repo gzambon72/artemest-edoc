@@ -61,9 +61,14 @@ CLASS zcl_zoe_edoc DEFINITION
 
 *** ACTION
     METHODS a_create .
+    METHODS a_CREATE_PDF .
+    METHODS a_CREATE_ZIP_OPEN .
+    METHODS a_CREATE_ZIP_CLOSE .
     METHODS a_create_from_rest .
+    METHODS a_create_from_rest_out .
     METHODS a_create_from_invoice .
     METHODS a_create_from_invoice_rest .
+    METHODS a_create_from_invoice_rest_out.
     METHODS a_display_pdf .
     METHODS a_park .
     METHODS a_post .
@@ -451,20 +456,21 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *    DATA(xml_base64_encoded) = cl_web_http_utility=>encode_base64( lv_xml_string ).
 *    DATA(xml_utf8_encoded) = cl_web_http_utility=>encode_utf8( lv_xml_string ).
 
-    DATA(xoutput) = o_model->get_encoded_xml( lv_xml_string  ).
+*    DATA(xoutput) = o_model->get_encoded_xml( lv_xml_string  ).
 
 *    CALL TRANSFORMATION id
 *       SOURCE xml = lv_xml_string
 *       RESULT xml = xml_utf8_encoded.
 
-    me->xmlcontentraw = lv_xml_string.
-    me->xcontent = xoutput. "xml_base64_x_encoded.
+*    me->xmlcontentraw = lv_xml_string.
+*    me->xcontent = xoutput. "xml_base64_x_encoded.
 
 
 
     o_model->from_xml_to_zip(
     EXPORTING
-      lv_xml_string = lv_xml_string
+      lv_xml_string = me->xmlcontentraw
+      lv_xml_xstring = me->xcontent
       i_filename_xml = me->filename
     IMPORTING
       e_filename_xml    = me->filename
@@ -563,20 +569,64 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
        pdfdata = me->pdfcontent
     ).
 
-    IF me->invoice IS INITIAL.
-      me->xml_2_buffer( ).
-    ELSE.
-      me->xml_2_buffer_from_invoice( ).
-    ENDIF.
+    me->xml_2_buffer( ).
   ENDMETHOD.
+  METHOD a_CREATE_PDF .           ENDMETHOD.
+  METHOD a_CREATE_ZIP_OPEN .          ENDMETHOD.
+  METHOD a_CREATE_ZIP_CLOSE .         ENDMETHOD.
 
   METHOD a_create.
     init_data_from_xml( me->xmlcontentraw ).
-    edoc_save_2_db( ).
+*    IF me->invoice IS INITIAL.
+
+*    ELSE.
+*      me->xml_2_buffer_from_invoice( ).
+*    ENDIF.
+
+  ENDMETHOD.
+  METHOD a_create_from_rest_out.
+    DATA lv_filename TYPE string.
+    DATA lv_zip TYPE xstring.
+    DATA xcontent TYPE xstring.
+    DATA wa_inv_i TYPE zmri_edoc_out.
+    DATA wa_inv_d TYPE zmri_edoc_out_d.
+    DATA wa_inv_cds TYPE zr_mri_edoc_out.
+
+*    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
+    CONSTANTS c_mime_xml TYPE string VALUE 'application/xml' .
+
+    DATA(invoice) = 'RESTXX_OUT-' && me->edoc_guid.
+
+*    DATA(lo_zip) = NEW cl_abap_zip( ).
+*
+*    lo_zip->add( name    = lv_filename content = me->xcontent ). "PDF
+*    lv_zip = lo_zip->save( ).
+
+    lv_zip = me->xcontent.
+
+    wa_inv_i = VALUE #(
+         invoice = invoice Filenamezip =  me->filename
+         zipdata = lv_zip
+         mimetypezip = c_mime_xml
+         comments = 'unit test da REST 01' ).
+
+
+    DELETE FROM zmri_edoc_out WHERE  local_created_by IS NULL.
+    DELETE FROM zmri_edoc_out_d WHERE hasactiveentity IS NULL.
+
+    MOVE-CORRESPONDING wa_inv_i TO wa_inv_d.
+    wa_inv_d-hasactiveentity = abap_true.
+
+    MODIFY zmri_edoc_out FROM @wa_inv_i.
+    MODIFY zmri_edoc_out_d FROM @wa_inv_d.
+    COMMIT WORK.
+
+    me->invoice = invoice.
+    me->a_create_from_invoice_rest_out(  ).
+
   ENDMETHOD.
   METHOD a_create_from_rest.
-*    init_data_from_xml( me->xmlcontentraw ).
-*    edoc_save_2_db( ).
+
 ** save invoice in ZMRI_INVOICE
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
@@ -588,24 +638,29 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
     CONSTANTS c_mime_xml TYPE string VALUE 'application/xml' .
 
-    DATA(invoice) = 'REST-' && me->edoc_guid.
+
+    DELETE FROM zmri_invoice .
+    DELETE FROM zmri_invoice_d .
+
+    DATA(invoice) = 'REST-' && sy-datum && '-' && me->edoc_guid.
 
 *    DATA(lo_zip) = NEW cl_abap_zip( ).
 *
 *    lo_zip->add( name    = lv_filename content = me->xcontent ). "PDF
 *    lv_zip = lo_zip->save( ).
 
-    lv_zip = me->xcontent.
+*    lv_zip = me->xcontent.
 
     wa_inv_i = VALUE #(
          invoice = invoice Filenamepdf =  me->filename
-         pdfdata = lv_zip
+         pdfdata = me->xcontent
          mimetypepdf = c_mime_xml
          comments = 'unit test da REST 01' ).
 
 
     DELETE FROM zmri_invoice WHERE  local_created_by IS NULL.
     DELETE FROM zmri_invoice_d WHERE hasactiveentity IS NULL.
+    COMMIT WORK.
 
     MOVE-CORRESPONDING wa_inv_i TO wa_inv_d.
     wa_inv_d-hasactiveentity = abap_true.
@@ -619,15 +674,15 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
   ENDMETHOD.
-  METHOD a_create_from_invoice_rest.
-    DATA s_invoice TYPE zmri_invoice.
+  METHOD a_create_from_invoice_rest_out.
+    DATA s_invoice TYPE zmri_edoc_out.
 
-    SELECT SINGLE * FROM zmri_invoice
+    SELECT SINGLE * FROM zmri_edoc_out
       WHERE invoice = @me->invoice
        INTO @s_invoice.
 
 
-    DATA(lv_string) = xco_cp=>xstring( s_invoice-pdfdata
+    DATA(lv_string) = xco_cp=>xstring( s_invoice-zipdata
           )->as_string( xco_cp_character=>code_page->utf_8
           )->value.
 
@@ -641,6 +696,31 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     me->edoc_save_2_db( ).
   ENDMETHOD.
+  METHOD a_create_from_invoice_rest.
+*    DATA s_invoice TYPE zmri_invoice.
+
+*    SELECT SINGLE * FROM zmri_invoice
+*      WHERE invoice = @me->invoice
+*       INTO @s_invoice.
+*
+*
+*    DATA(lv_string) = xco_cp=>xstring( s_invoice-pdfdata
+*          )->as_string( xco_cp_character=>code_page->utf_8
+*          )->value.
+*
+*    me->xmlcontentraw = lv_string.
+*    CLEAR me->invoice.
+*    init_data_from_xml( me->xmlcontentraw ).
+*
+*    APPEND me->edocument TO me->edocument_t.
+*    APPEND me->edocumentfile TO me->edocumentfile_t.
+*    APPEND me->buffer TO me->buffer_t.
+
+
+    a_create_from_invoice( ).
+    me->edoc_save_2_db( ).
+
+  ENDMETHOD.
   METHOD a_create_from_invoice.
 
     DATA lo_zip  TYPE REF TO cl_abap_zip.
@@ -652,43 +732,57 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
       WHERE invoice = @me->invoice
        INTO @s_invoice.
 
+    CLEAR me->invoice.
 
-    i_zip = s_invoice-pdfdata.
+    IF s_invoice-mimetypepdf CS 'xml'.
 
-    lo_zip = NEW cl_abap_zip( ).
-    lo_zip->load(
-    EXPORTING
-      zip             = i_zip   ).
+      DATA(lv_string_xml) = xco_cp=>xstring( s_invoice-pdfdata
+                  )->as_string( xco_cp_character=>code_page->utf_8
+                  )->value.
+      me->xmlcontentraw = lv_string_xml.
 
-    "Ottiene lista dei files
-    DATA lt_files TYPE lo_zip->t_files.
+      init_data_from_xml( me->xmlcontentraw ).
+      APPEND me->edocument TO me->edocument_t.
+      APPEND me->edocumentfile TO me->edocumentfile_t.
+      APPEND me->buffer TO me->buffer_t.
+    ELSE.
 
-    DATA lt_files_xml TYPE lo_zip->t_files.
-    DATA file TYPE lo_zip->t_file.
+      i_zip = s_invoice-pdfdata.
 
-    lt_files = lo_zip->files.
+      lo_zip = NEW cl_abap_zip( ).
+      lo_zip->load(
+      EXPORTING
+        zip             = i_zip   ).
 
-    LOOP AT lt_files INTO file.
-      IF file-name CS 'XML'.
-        xml_filename = file-name.
+      "Ottiene lista dei files
+      DATA lt_files TYPE lo_zip->t_files.
+
+      DATA lt_files_xml TYPE lo_zip->t_files.
+      DATA file TYPE lo_zip->t_file.
+
+      lt_files = lo_zip->files.
+
+      LOOP AT lt_files INTO file.
+        IF file-name CS 'XML'.
+          xml_filename = file-name.
 
 
-        lo_zip->get( EXPORTING  name = xml_filename
-      IMPORTING content = DATA(lv_content) ).
+          lo_zip->get( EXPORTING  name = xml_filename
+        IMPORTING content = DATA(lv_content) ).
 
-        DATA(lv_string) = xco_cp=>xstring( lv_content
-              )->as_string( xco_cp_character=>code_page->utf_8
-              )->value.
+          DATA(lv_string) = xco_cp=>xstring( lv_content
+                )->as_string( xco_cp_character=>code_page->utf_8
+                )->value.
 
-        me->filename = xml_filename.
-        me->xmlcontentraw = lv_string.
-        init_data_from_xml( me->xmlcontentraw ).
-        APPEND me->edocument TO me->edocument_t.
-        APPEND me->edocumentfile TO me->edocumentfile_t.
-        APPEND me->buffer TO me->buffer_t.
-      ENDIF.
-    ENDLOOP.
-
+          me->filename = xml_filename.
+          me->xmlcontentraw = lv_string.
+          init_data_from_xml( me->xmlcontentraw ).
+          APPEND me->edocument TO me->edocument_t.
+          APPEND me->edocumentfile TO me->edocumentfile_t.
+          APPEND me->buffer TO me->buffer_t.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
   ENDMETHOD.
 
   METHOD a_delete.
@@ -708,6 +802,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
   METHOD edoc_save_2_db.
+
+    MODIFY zedoc_db FROM @me->buffer.
 
     MODIFY zoe_edocument FROM @me->edocument.
 
@@ -837,7 +933,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
                   filenamezip = me->edocumentfile-filenamezip
                   ernam = sy-uname erdat = sy-datum erzet = sy-uzeit tmstp = tmstp ).
 
-    MODIFY zedoc_db FROM @ls_data.
+
     " COMMIT WORK..
 
     me->buffer = ls_data.
@@ -847,8 +943,19 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   METHOD execute_action.
     CASE  iv_action.
+      WHEN 'CREATE_PDF '.
+        a_CREATE_PDF( ) .
+      WHEN 'CREATE_ZIP_OPEN '.
+        a_CREATE_ZIP_OPEN( ) .
+      WHEN 'CREATE_ZIP_CLOSE '.
+        a_CREATE_ZIP_CLOSE( ) .
       WHEN 'CREATE_FROM_REST'.
-        a_create_from_rest(  ).
+        CASE me->edocflow.
+          WHEN 'EDOCI'.
+            a_create_from_rest( ).
+          WHEN 'EDOCO'.
+            a_create_from_rest_out( ).
+        ENDCASE.
       WHEN 'CREATE'.
         IF invoice IS INITIAL.
           a_create( ).

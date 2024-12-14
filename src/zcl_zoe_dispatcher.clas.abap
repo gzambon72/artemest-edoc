@@ -17,6 +17,7 @@ CLASS zcl_zoe_dispatcher DEFINITION
         !unit_test    TYPE abap_bool DEFAULT abap_true
         !filename     TYPE string OPTIONAL
         xcontent      TYPE zedoc_db-xmldata OPTIONAL
+        edocflow      TYPE zedoc_db-edocflow OPTIONAL
         content       TYPE string OPTIONAL
         invoice       TYPE zmri_invoice-invoice OPTIONAL.
     METHODS execute_action
@@ -37,11 +38,14 @@ CLASS zcl_zoe_dispatcher IMPLEMENTATION.
 
   METHOD constructor.
     me->o_edoc = NEW zcl_zoe_edoc( ).
-    me->edocflow = 'EDOCI'.
-    me->content = content.
+    me->edocflow  = edocflow.
+    IF me->edocflow IS INITIAL.
+      me->edocflow = 'EDOCI'.
+    ENDIF..
+    me->content = xcontent.
     me->filename = filename.
     me->edoc_guid = iv_edoc_guid.
-    o_edoc->data_init( xcontent = xcontent content = content edocflow = edocflow edoc_guid = edoc_guid filename = filename invoice = invoice ) .
+    o_edoc->data_init( xcontent = xcontent content = content edocflow = me->edocflow edoc_guid = edoc_guid filename = filename invoice = invoice ) .
 
   ENDMETHOD.
 

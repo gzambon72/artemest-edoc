@@ -17,7 +17,7 @@ define root view entity ZC_MRI_INVOICE001
              {
                mimeType: 'Mimetypepdf',
                fileName: 'Filenamepdf',
-               contentDispositionPreference: #ATTACHMENT // #ATTACHMENT - download as file
+               contentDispositionPreference: #INLINE // #ATTACHMENT - download as file
                                                           // #INLINE - open in new window
                                                            }
       @EndUserText.label : 'Content'
