@@ -14,6 +14,17 @@ ENDCLASS.
 
 CLASS zcl_restcontentdisp IMPLEMENTATION.
   METHOD if_http_service_extension~handle_request.
+
+    DATA o_dispatcher_rest TYPE REF TO zcl_zoe_dispatcher_rest.
+
+    o_dispatcher_rest = NEW zcl_zoe_dispatcher_rest(
+       request = request
+       response = response ).
+
+
+
+    CHECK 1 = 2.
+
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
     DATA xcontent TYPE xstring.
@@ -91,11 +102,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
         DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
         DATA i_edoc_guid TYPE zunique_value.
 
-        i_edoc_guid = edoc_guid.
-
-        IF i_edoc_guid IS INITIAL.
-          i_edoc_guid = 'XML_PARENT' && sy-datum.
-        ENDIF.
+*        i_edoc_guid = edoc_guid.
 
         CASE action.
           WHEN 'EDOCI_CREATE'.
@@ -135,6 +142,13 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             lv_filename = i_filename.
 
             xml_base64_x_encoded  =  request->get_binary( ).
+            xml_base64_x_encoded  =  request->get_form_field( 'file' ).
+
+*** ---> FOR TESTING REPLACE Incominc pdf Content WITH pdf XML embedded START
+            SELECT pdfdata FROM zedoc_db INTO @xml_base64_x_encoded.
+              EXIT.
+            ENDSELECT.
+*** ---> FOR TESTING replace Incominc PDF Content with PDF XML EMBEDDED END
 
             o_dispatcher = NEW zcl_zoe_dispatcher(
                iv_edoc_guid = i_edoc_guid
@@ -179,7 +193,7 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             response->set_header_field(
           EXPORTING
             i_name  = 'Content-Type'
-            i_value = 'application/xml' ).  "MIME type per FIP
+            i_value = 'application/xml' ).  "MIME type per
 
 
             response->set_binary( xoutput ).

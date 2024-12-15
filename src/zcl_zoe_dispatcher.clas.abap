@@ -3,12 +3,7 @@ CLASS zcl_zoe_dispatcher DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    DATA edocument TYPE zoe_Edocument READ-ONLY.
-    DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
-    DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
-    DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
-    DATA buffer TYPE zedoc_db.
-    DATA buffer_t TYPE zedoc_db_t.
+    DATA pub_response TYPE string READ-ONLY .
     METHODS constructor
       IMPORTING
         !iv_edoc_guid TYPE zunique_value OPTIONAL
@@ -19,12 +14,19 @@ CLASS zcl_zoe_dispatcher DEFINITION
         xcontent      TYPE zedoc_db-xmldata OPTIONAL
         edocflow      TYPE zedoc_db-edocflow OPTIONAL
         content       TYPE string OPTIONAL
-        invoice       TYPE zmri_invoice-invoice OPTIONAL.
+        invoice       TYPE zmri_invoice-invoice OPTIONAL
+        parent_edoc_guid TYPE zunique_value OPTIONAL.
     METHODS execute_action
       IMPORTING
         !iv_action TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
+    DATA edocument TYPE zoe_Edocument .
+    DATA edocument_t TYPE zoe_Edocument_t .
+    DATA edocumentfile TYPE zoe_edocfile   .
+    DATA edocumentfile_t TYPE zoe_edocfile_t .
+    DATA buffer TYPE zedoc_db.
+    DATA buffer_t TYPE zedoc_db_t.
     DATA content TYPE zedoc_db-xmldata .
     DATA edocflow TYPE zedocflow .
     DATA new TYPE abap_bool .
@@ -45,7 +47,10 @@ CLASS zcl_zoe_dispatcher IMPLEMENTATION.
     me->content = xcontent.
     me->filename = filename.
     me->edoc_guid = iv_edoc_guid.
-    o_edoc->data_init( xcontent = xcontent content = content edocflow = me->edocflow edoc_guid = edoc_guid filename = filename invoice = invoice ) .
+    o_edoc->data_init(
+        xcontent = xcontent content = content edocflow = me->edocflow
+        edoc_guid = edoc_guid filename = filename invoice = invoice
+        parent_edoc_guid = parent_edoc_guid ) .
 
   ENDMETHOD.
 
@@ -57,5 +62,6 @@ CLASS zcl_zoe_dispatcher IMPLEMENTATION.
     edocument_t = o_edoc->edocument_t.
     edocumentfile_t = o_edoc->edocumentfile_t.
     buffer_t = o_edoc->buffer_t.
+    pub_response = o_edoc->pub_response.
   ENDMETHOD.
 ENDCLASS.

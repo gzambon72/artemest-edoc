@@ -1,8 +1,6 @@
 class ZBP_I_EDOCFLOWTABLE_S definition
   public
-  abstract
-  final
-  for behavior of ZI_EDOCFLOWTABLE_S .
+  create private .
 
 public section.
 protected section.

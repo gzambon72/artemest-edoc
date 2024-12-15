@@ -113,8 +113,8 @@ CLASS lhc_electronicdocument IMPLEMENTATION.
 
       CHECK unique_value IS NOT INITIAL.
 
-      o_dispatcher = NEW zcl_zoe_dispatcher( iv_edoc_guid = unique_value  ).
-      o_dispatcher->execute_action(  'IV_POST' ).
+*      o_dispatcher = NEW zcl_zoe_dispatcher( iv_edoc_guid = unique_value  ).
+*      o_dispatcher->execute_action(  'IV_POST' ).
 
     ENDLOOP.
 

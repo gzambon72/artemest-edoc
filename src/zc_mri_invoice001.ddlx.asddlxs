@@ -29,6 +29,7 @@ annotate view ZC_MRI_INVOICE001 with
   @UI.selectionField: [ {
     position: 10 
   }]
+  @EndUserText.label : 'Invoice'
   Invoice;
   
   @EndUserText.label: 'Comments'

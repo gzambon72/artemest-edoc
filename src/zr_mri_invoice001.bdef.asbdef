@@ -42,6 +42,7 @@ authorization master ( global )
       Mimetypepdf        = mimetypepdf;
       Filenamepdf        = filenamepdf;
       Purchaseorder      = purchaseorder;
+      Pdfdata            = pdfdata;
       Price              = price;
       LocalCreatedBy     = local_created_by;
       LocalCreatedAt     = local_created_at;
