@@ -17,21 +17,35 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
     DATA xcontent TYPE xstring.
-    DATA(action) = request->get_header_field( 'action' ).
-    DATA(i_filename) = request->get_header_field( 'filename' ).
+
     CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
+    CONSTANTS c_mime_xml TYPE string VALUE 'application/xml' .
+    CONSTANTS c_mime_pdf TYPE string VALUE 'application/pdf' .
+
     DATA o_dispatcher TYPE REF TO zcl_zoe_dispatcher.
-    DATA(path_info) =  request->get_header_field( i_name = '~path_info' ).
+
     DATA edocflow TYPE zedocflow.
     DATA xml_base64_x_encoded TYPE xstring.
     TRY.
 
+        DATA(action) = request->get_header_field( 'action' ).
+        DATA(edoc_guid) = request->get_header_field( 'edoc_guid' ).
+        DATA(i_filename) = request->get_header_field( 'filename' ).
+        DATA(path_info) =  request->get_header_field( i_name = '~path_info' ).
+
+        DATA(content_type) = request->get_header_field( 'content-type' ).
+
+        " Leggere tutti gli headers
+        DATA(headers) = request->get_header_fields( ).
+
+
 
         DATA r_value TYPE if_web_http_request=>name_value_pairs.
 
-*        r_value = request->get_header_fields( ).
+
 
         DATA(lv_request_body) =  request->get_text( ).
+
 
 *** da xml a zip ***
 
@@ -39,9 +53,18 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
         TRANSLATE path_info TO UPPER CASE .
 
         CASE  path_info.
+          WHEN 'EDOCI_CREATE_PDF'.
+            edocflow = 'EDOCI'.
+            action =  'EDOCI_CREATE_PDF'.
           WHEN 'EDOCI_CREATE'.
             edocflow = 'EDOCI'.
-            action =  'EDOCI_CREATE'.
+            CASE content_type.
+              WHEN c_mime_xml.
+                action =  'EDOCI_CREATE'.
+              WHEN c_mime_pdf.
+                action =  'EDOCI_CREATE_PDF'.
+              WHEN c_mime_zip.
+            ENDCASE.
           WHEN 'CREATE_UNIT_TEST_ZIP'.
             edocflow = 'EDOCI'.
             action =  'CREATE_UNIT_TEST_ZIP'.
@@ -66,6 +89,13 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
         DATA(xoutput) = o_model->get_encoded_xml( lv_request_body  ).
         DATA o_edoc TYPE REF TO zcl_zoe_edoc.
         DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
+        DATA i_edoc_guid TYPE zunique_value.
+
+        i_edoc_guid = edoc_guid.
+
+        IF i_edoc_guid IS INITIAL.
+          i_edoc_guid = 'XML_PARENT' && sy-datum.
+        ENDIF.
 
         CASE action.
           WHEN 'EDOCI_CREATE'.
@@ -73,12 +103,14 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
             IF i_filename IS INITIAL.
               i_filename = 'test-postman.xml'.
             ENDIF.
+
+
             lv_filename = i_filename.
 
             xml_base64_x_encoded  =  request->get_binary( ).
 
             o_dispatcher = NEW zcl_zoe_dispatcher(
-               iv_edoc_guid = unique_value
+               iv_edoc_guid = i_edoc_guid
                xcontent =  xml_base64_x_encoded
                content = lv_request_body
                 edocflow = edocflow
@@ -94,6 +126,25 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
 *
 *
 *            response->set_text( lv_request_body ).
+          WHEN 'EDOCI_CREATE_PDF'.
+
+            IF i_filename IS INITIAL.
+              i_filename = 'test-postman.pdf'.
+            ENDIF.
+
+            lv_filename = i_filename.
+
+            xml_base64_x_encoded  =  request->get_binary( ).
+
+            o_dispatcher = NEW zcl_zoe_dispatcher(
+               iv_edoc_guid = i_edoc_guid
+               xcontent =  xml_base64_x_encoded
+               content = lv_request_body
+                edocflow = edocflow
+               filename = lv_filename ).
+
+            o_dispatcher->execute_action(  'CREATE_PDF' ).
+            response->set_text( '<h1>CREATE_PDF ---> SUCCESS to STAGING and EDOCUMENT<h1>' ).
           WHEN  'CREATE_UNIT_TEST_ZIP'.
             SELECT * FROM zedoc_db INTO @DATA(wa) .
             ENDSELECT.
