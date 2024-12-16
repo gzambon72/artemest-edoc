@@ -3,8 +3,14 @@ CLASS zcl_zoe_dispatcher DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    DATA edocument TYPE zoe_Edocument READ-ONLY.
+    DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
+    DATA edocumentfile TYPE zoe_edocfile   READ-ONLY.
+    DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
+    DATA buffer TYPE zedoc_db READ-ONLY.
+    DATA buffer_t TYPE zedoc_db_t READ-ONLY.
     DATA pub_response TYPE string READ-ONLY .
-    DATA severity type   IF_ABAP_BEHV_MESSAGE=>T_SEVERITY  READ-ONLY .
+    DATA severity TYPE   if_abap_behv_message=>t_severity  READ-ONLY .
     DATA action_text TYPE string READ-ONLY .
     METHODS constructor
       IMPORTING
@@ -24,12 +30,7 @@ CLASS zcl_zoe_dispatcher DEFINITION
         !iv_action TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA edocument TYPE zoe_Edocument .
-    DATA edocument_t TYPE zoe_Edocument_t .
-    DATA edocumentfile TYPE zoe_edocfile   .
-    DATA edocumentfile_t TYPE zoe_edocfile_t .
-    DATA buffer TYPE zedoc_db.
-    DATA buffer_t TYPE zedoc_db_t.
+
     DATA content TYPE zedoc_db-xmldata .
     DATA edocflow TYPE zedocflow .
     DATA new TYPE abap_bool .

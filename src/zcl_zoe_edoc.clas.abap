@@ -88,7 +88,7 @@ CLASS zcl_zoe_edoc DEFINITION
     METHODS a_create .
     METHODS a_CREATE_PDF .
 
-    METHODS a_create_from_rest.
+    METHODS a_create_from_rest IMPORTING no_commit TYPE abap_bool DEFAULT abap_true.
     METHODS a_create_from_rest_out .
     METHODS a_create_from_staging .
     METHODS a_create_invoice_staging
@@ -673,7 +673,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   METHOD a_create_from_rest.
 
     " ZIP - PDF - XML
-
+    me->no_commit = no_commit.
     CASE abap_true.
       WHEN xml.
         me->a_create_invoice_staging_xml( ).
@@ -852,6 +852,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     DATA s_invoice TYPE zoe_staging_file.
     DATA allowed TYPE abap_boolean.
 
+
     SELECT SINGLE * FROM zoe_staging_file
       WHERE invoice = @me->invoice
        INTO @s_invoice.
@@ -859,7 +860,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     CLEAR me->invoice.
 
 
-    IF s_invoice-mimetypepdf CS 'zip' AND s_invoice-outbound = abap_false.
+*    IF s_invoice-mimetypepdf CS 'zip' AND s_invoice-outbound = abap_false and s_invoice-manual_post = abap_true.
+    IF s_invoice-outbound = abap_false AND s_invoice-manual_post = abap_true.
       allowed = abap_true.
     ELSE.
       me->severity = if_abap_behv_message=>severity-error.
@@ -892,6 +894,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     lt_files = lo_zip->files.
 
+    FREE: me->edocument_t, me->edocumentfile_t, me->buffer_t.
+
     LOOP AT lt_files INTO file.
       IF file-name CS 'XML'.
         xml_filename = file-name.
@@ -903,20 +907,28 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
         DATA(lv_string) = xco_cp=>xstring( lv_content
               )->as_string( xco_cp_character=>code_page->utf_8
               )->value.
+*** istanza singleton
+        DATA(me_obj) = NEW zcl_zoe_edoc( ).
+        me_obj->data_init( edocflow = 'EDOCI'   filename = xml_filename content = lv_string xcontent = lv_content ).
+*        me->filename = xml_filename.
+*        me->xmlcontentraw = lv_string.
+*        me->xcontent = lv_content.
+        me_obj->a_create(  ).
+        me_obj->edoc_save_2_db( no_commit = abap_true ).
 
-        me->filename = xml_filename.
-        me->xmlcontentraw = lv_string.
-        me->xcontent = lv_string.
-        me->a_create(  ).
+
+*        o_dispatcher->execute_action( 'CREATE_FROM_REST_STAGING' ).
+
         me->severity = if_abap_behv_message=>severity-success.
 
-        me->edoc_save_2_db( no_commit = abap_true ).
+*        me->edoc_save_2_db( no_commit = abap_true ).
         me->action_text = 'Record Salvato in OCRA EDOCUMENT'.
 
 *        init_data_from_xml( me->xmlcontentraw ).
-*        APPEND me->edocument TO me->edocument_t.
-*        APPEND me->edocumentfile TO me->edocumentfile_t.
-*        APPEND me->buffer TO me->buffer_t.
+        APPEND LINES OF me_obj->edocument_t TO me->edocument_t.
+        APPEND LINES OF me_obj->edocumentfile_t TO me->edocumentfile_t.
+        APPEND LINES OF me_obj->buffer_t TO me->buffer_t.
+
       ENDIF.
     ENDLOOP.
 
@@ -1333,22 +1345,22 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     me->invoice = invoice.
     me->parent_edoc_guid = parent_edoc_guid.
 
-    IF me->edoc_guid IS  INITIAL. me->new = abap_true. ENDIF.
+*    IF me->edoc_guid IS  INITIAL. me->new = abap_true. ENDIF.
 
     DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
     me->edoc_guid = unique_value.
 
-    CHECK me->new = abap_false.
-
-
-    SELECT SINGLE * FROM zedoc_db WHERE unique_value = @me->edoc_guid INTO @me->buffer .
-    CHECK sy-subrc = 0.
-    SELECT SINGLE * FROM zoe_edocument  WHERE zunique_value = @me->edoc_guid INTO @me->edocument.
-    SELECT SINGLE * FROM zoe_edocfile  WHERE file_guid = @me->edocument-file_guid INTO @me->edocumentfile.
-
-    me->file_guid  = me->edocumentfile-file_guid.
-    me->filename = me->edocumentfile-filename.
-    me->xcontent = me->buffer-xmldata.
+*    CHECK me->new = abap_false.
+*
+*
+*    SELECT SINGLE * FROM zedoc_db WHERE unique_value = @me->edoc_guid INTO @me->buffer .
+*    CHECK sy-subrc = 0.
+*    SELECT SINGLE * FROM zoe_edocument  WHERE zunique_value = @me->edoc_guid INTO @me->edocument.
+*    SELECT SINGLE * FROM zoe_edocfile  WHERE file_guid = @me->edocument-file_guid INTO @me->edocumentfile.
+*
+*    me->file_guid  = me->edocumentfile-file_guid.
+*    me->filename = me->edocumentfile-filename.
+*    me->xcontent = me->buffer-xmldata.
 
   ENDMETHOD.
 
@@ -1444,7 +1456,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
     CASE  iv_action.
-      WHEN 'CREATE_FROM_REST' OR 'CREATE_PDF' OR 'CREATE_ZIP'.
+      WHEN 'CREATE_FROM_REST_STAGING' OR 'CREATE_PDF' OR 'CREATE_ZIP'.
+
+        IF iv_action CS 'STAGING'. me->no_commit = abap_true. ENDIF.
 
         IF iv_action CS 'REST'. me->xml = abap_true. ENDIF.
         IF iv_action CS 'PDF'. me->pdf = abap_true. ENDIF.
@@ -1459,6 +1473,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
       WHEN 'CREATE'.
         a_create( ).
       WHEN 'POST_FROM_STAGING'.
+*        me->edocflow = 'EDOCI'.
         a_create_from_staging( ).
       WHEN 'IV_POST'  .
         a_post( ).
