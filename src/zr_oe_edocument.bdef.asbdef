@@ -2,6 +2,7 @@ managed implementation in class ZBP_R_OE_EDOCUMENT unique;
 strict ( 2 );
 define behavior for ZR_OE_EDOCUMENT alias Edocument
 persistent table ZOE_EDOCUMENT
+
 lock master
 authorization master( global )
 

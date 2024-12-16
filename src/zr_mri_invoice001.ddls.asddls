@@ -30,6 +30,11 @@ define root view entity ZR_MRI_INVOICE001
       @Semantics.systemDateTime.localInstanceLastChangedAt: true
       local_last_changed_at as LocalLastChangedAt,
       @Semantics.systemDateTime.lastChangedAt: true
-      last_changed_at       as LastChangedAt
+      last_changed_at       as LastChangedAt,
+      from_edoc             as FromEdoc,
+      inbound               as Inbound,
+      outbound              as Outbound,
+      manual_post           as ManualPost  
+      
 
 }

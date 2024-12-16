@@ -70,6 +70,7 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
           WHEN c_mime_pdf.
             action =  'EDOCI_CREATE_PDF'.
           WHEN c_mime_zip.
+            action =  'EDOCI_CREATE_ZIP'.
         ENDCASE.
       WHEN 'EDOCO_CREATE'.
         edocflow = 'EDOCO'.
@@ -79,6 +80,7 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
           WHEN c_mime_pdf.
             action =  'EDOCO_CREATE_PDF'.
           WHEN c_mime_zip.
+            action =  'EDOCO_CREATE_ZIP'.
         ENDCASE.
       WHEN 'UNIT-TEST-CREATE'.
         action = 'CREATE_UNIT_TEST'.
@@ -110,7 +112,32 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
         o_dispatcher->execute_action( 'CREATE_FROM_REST' ).
 
 
+      WHEN 'EDOCI_CREATE_ZIP'.
+        IF i_filename IS INITIAL.
+          i_filename = 'test-postman.zip'.
+        ENDIF.
 
+        lv_filename = i_filename.
+
+        xml_base64_x_encoded  =  request->get_binary( ).
+        xml_base64_x_encoded  =  request->get_form_field( 'file' ).
+
+*** ---> FOR TESTING START --- zip content fake from edocument
+        SELECT zipdata FROM zedoc_db INTO @xml_base64_x_encoded.
+          EXIT.
+        ENDSELECT.
+*** ---> FOR TESTING END -- zip content fake from edocument
+
+
+        o_dispatcher = NEW zcl_zoe_dispatcher(
+           iv_edoc_guid = i_edoc_guid
+           xcontent =  xml_base64_x_encoded
+           content = lv_request_body
+            edocflow = edocflow
+           filename = lv_filename
+           parent_edoc_guid = i_parent_edoc_guid ).
+
+        o_dispatcher->execute_action(  'CREATE_ZIP' ).
 
       WHEN 'EDOCI_CREATE_PDF'.
 

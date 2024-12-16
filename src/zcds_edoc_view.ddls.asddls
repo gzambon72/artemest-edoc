@@ -17,6 +17,7 @@ define root view entity ZCDS_EDOC_VIEW
   key DocDB.unique_value,
       GroupDB.groupdescr,
       Flow.edocflowdescr,
+      Document.status,
       Document.statusdescr,
       Document.vatcode as VAT,
       Document.cedente as Cedente,

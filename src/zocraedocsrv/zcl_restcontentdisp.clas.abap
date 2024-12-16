@@ -75,6 +75,8 @@ CLASS zcl_restcontentdisp IMPLEMENTATION.
               WHEN c_mime_pdf.
                 action =  'EDOCI_CREATE_PDF'.
               WHEN c_mime_zip.
+                action =  'EDOCI_CREATE_ZIP'.
+              WHEN c_mime_zip.
             ENDCASE.
           WHEN 'CREATE_UNIT_TEST_ZIP'.
             edocflow = 'EDOCI'.

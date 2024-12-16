@@ -3,10 +3,13 @@ CLASS zcl_zoe_edoc DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    DATA xml TYPE abap_boolean.
     DATA pdf TYPE abap_boolean.
+    DATA zip TYPE abap_boolean.
     DATA pub_response TYPE string READ-ONLY .
     CONSTANTS c_mime_pdf TYPE string VALUE 'application/pdf' .
     CONSTANTS c_mime_xml TYPE string VALUE 'application/xml' .
+    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
     DATA edocument TYPE zoe_Edocument READ-ONLY.
     DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
     DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
@@ -16,7 +19,7 @@ CLASS zcl_zoe_edoc DEFINITION
     METHODS constructor
       IMPORTING
         !iv_edoc_guid TYPE zunique_value OPTIONAL
-        !iv_edocflow  TYPE zedocflow DEFAULT 'EDOC'
+        !iv_edocflow  TYPE zedocflow DEFAULT 'EDOCI'
         !is_new       TYPE abap_bool DEFAULT abap_true
         !unit_test    TYPE abap_bool DEFAULT abap_true
         !filename     TYPE string OPTIONAL
@@ -24,17 +27,22 @@ CLASS zcl_zoe_edoc DEFINITION
     METHODS execute_action
       IMPORTING
         !iv_action TYPE string .
+    METHODS data_update
+      IMPORTING
+        edocflow  TYPE zedocflow DEFAULT 'EDOCI'
+        edoc_guid TYPE zunique_value.
+
     METHODS data_init
       IMPORTING
         edoc_guid        TYPE zunique_value OPTIONAL
         parent_edoc_guid TYPE zunique_value OPTIONAL
-        edocflow         TYPE zedocflow DEFAULT 'EDOC'
+        edocflow         TYPE zedocflow DEFAULT 'EDOCI'
         is_new           TYPE abap_bool DEFAULT abap_true
         unit_test        TYPE abap_bool DEFAULT abap_true
         filename         TYPE string OPTIONAL
         xcontent         TYPE zedoc_db-xmldata OPTIONAL
         content          TYPE string OPTIONAL
-        invoice          TYPE zmri_invoice-invoice OPTIONAL..
+        invoice          TYPE zmri_invoice-invoice OPTIONAL.
   PROTECTED SECTION.
 
 
@@ -67,9 +75,12 @@ CLASS zcl_zoe_edoc DEFINITION
     METHODS save_entity_edocument .
     METHODS save_entity_buffer .
     METHODS save_entity_edocufile .
+
+    METHODS update_entity_edocument .
     METHODS update_entity_buffer .
     METHODS edoc_save_2_db .
     METHODS edoc_save_pdf_db .
+    METHODS edoc_save_zip_db .
 
 *** ACTION
     METHODS a_create .
@@ -79,10 +90,11 @@ CLASS zcl_zoe_edoc DEFINITION
     METHODS a_create_from_rest.
     METHODS a_create_from_rest_out .
     METHODS a_create_from_invoice .
-    METHODS a_create_invoice_i
+    METHODS a_create_invoice_staging
       IMPORTING mime_type TYPE string.
-    METHODS a_create_invoice_i_PDF .
-    METHODS a_create_invoice_i_XML .
+    METHODS a_create_invoice_staging_pdf .
+    METHODS a_create_invoice_staging_xml .
+    METHODS a_create_invoice_staging_zip .
     METHODS a_create_invoice_o .
     METHODS a_create_from_invoice_rest .
     METHODS a_create_from_invoice_rest_out.
@@ -106,6 +118,7 @@ CLASS zcl_zoe_edoc DEFINITION
         VALUE(lv_xml_string) TYPE string .
     METHODS init_data_from_xml IMPORTING lv_xml_string TYPE any.
     METHODS init_data_from_pdf  .
+    METHODS init_data_from_zip .
     METHODS get_content_dummy RETURNING VALUE(e_content) TYPE string..
 ENDCLASS.
 
@@ -552,6 +565,33 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
   ENDMETHOD.
+  METHOD init_data_from_zip .
+
+
+    DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
+
+    me->file_guid  = me->edoc_guid .
+
+
+    me->edocumentfile = VALUE #(  file_guid = file_guid zunique_value = me->parent_edoc_guid
+*       file_raw = me->xcontent
+*       file_sraw = me->xmlcontentraw
+*        filename = me->filename
+*        filenamepdf = me->filename
+*        mimetypepdf = c_mime_pdf
+*        pdfdata = me->pdfcontent
+       filenamezip = me->filename
+*       mimetypexml = 'application/xml'
+*       xmldata = me->xcontent
+        mimetypezip = c_mime_zip
+        zipdata = me->xcontent
+
+
+    ).
+
+    me->xml_2_buffer( ).
+  ENDMETHOD.
+
   METHOD init_data_from_pdf .
 
 
@@ -565,8 +605,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *       file_sraw = me->xmlcontentraw
 *        filename = me->filename
         filenamepdf = me->filename
-        mimetypepdf = 'application/pdf'
-        pdfdata = me->pdfcontent
+        mimetypepdf = c_mime_pdf
+        pdfdata = me->xcontent
 *       filenamezip = me->zip_filename
 *       mimetypexml = 'application/xml'
 *       xmldata = me->xcontent
@@ -578,6 +618,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     me->xml_2_buffer( ).
   ENDMETHOD.
+
   METHOD init_data_from_xml .
 
     me->from_xml_to_zip(  lv_xml_string ).
@@ -680,16 +721,19 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   ENDMETHOD.
   METHOD a_create_from_rest.
 
-    CASE pdf.
-      WHEN abap_true.
-        a_create_pdf(  ).
-        me->a_create_invoice_i_pdf( ).
-        me->edoc_save_pdf_db( ).
-      WHEN abap_false.
+    " ZIP - PDF - XML
 
-        me->a_create_invoice_i_xml( ).
+    CASE abap_true.
+      WHEN xml.
+        me->a_create_invoice_staging_xml( ).
         me->a_create_from_invoice_rest(  ).
-
+      WHEN pdf.
+        init_data_from_pdf( ).
+        me->a_create_invoice_staging_pdf( ).
+        me->edoc_save_pdf_db( ).
+      WHEN zip.
+        init_data_from_zip( ).
+        a_create_invoice_staging_zip( ).
     ENDCASE.
 
 
@@ -698,13 +742,6 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
                     parent_edoc_guid = me->parent_edoc_guid
                     result = if_abap_behv_message=>severity-success
                     message     = 'Document created successfully in EDOCUMENT' ).
-
-*      " Messaggio di successo
-*      APPEND VALUE #( %msg = new_message_with_text(
-*                       severity = if_abap_behv_message=>severity-success
-*                       text     = 'Document created successfully in OCRA Edocument'
-*                     ) ) TO edocuf_reported-EdocumentFile.
-
 
     "Serializzazione in JSON
     pub_response = /ui2/cl_json=>serialize(
@@ -739,14 +776,16 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     me->edoc_save_2_db( ).
   ENDMETHOD.
-  METHOD a_create_invoice_i_XML .
-    a_create_invoice_i(  c_mime_xml ).
+  METHOD a_create_invoice_staging_xml .
+    a_create_invoice_staging(  c_mime_xml ).
   ENDMETHOD.
-  METHOD a_create_invoice_i_PDF.
-    a_create_invoice_i(  c_mime_pdf ).
+  METHOD a_create_invoice_staging_pdf.
+    a_create_invoice_staging(  c_mime_pdf ).
   ENDMETHOD.
-
-  METHOD a_create_invoice_i.
+  METHOD a_create_invoice_staging_zip.
+    a_create_invoice_staging(  c_mime_zip ).
+  ENDMETHOD.
+  METHOD a_create_invoice_staging.
 ** save invoice in ZMRI_INVOICE
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
@@ -754,23 +793,18 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     DATA wa_inv_i TYPE zmri_invoice.
     DATA wa_inv_d TYPE zmri_invoice_d.
     DATA wa_inv_cds TYPE zr_mri_invoice001.
+    DATA comments TYPE zmri_invoice-comments.
 
 
-*    DELETE FROM zmri_invoice .
-*    DELETE FROM zmri_invoice_d .
-
-*    DATA(invoice) = 'REST-PDF-' && sy-datum && '-' && me->edoc_guid.
     DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
     invoice = unique_value.
-*    DATA(lo_zip) = NEW cl_abap_zip( ).
-*
-*    lo_zip->add( name    = lv_filename content = me->xcontent ). "PDF
-*    lv_zip = lo_zip->save( ).
 
-*    lv_zip = me->xcontent.
 
 
     lv_filename  = me->filename.
+
+    " *** xml ***
+    comments =  'unit test XML da REST'.
 
     IF pdf = abap_true.
       DATA pdf_base64_x_decoded TYPE xstring.
@@ -779,23 +813,62 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
           RESULT pdf = pdf_base64_x_decoded.
 
       me->xcontent = pdf_base64_x_decoded.
+      comments =  'unit test PDF da REST'.
     ENDIF.
 
-*    REPLACE 'xml' WITH 'pdf' INTO lv_filename.
+    IF zip = abap_true.
+      DATA zip_base64_x_decoded TYPE xstring.
+      CALL TRANSFORMATION id
+        SOURCE pdf = me->xcontent
+          RESULT pdf = zip_base64_x_decoded.
+
+      me->xcontent = zip_base64_x_decoded.
+      comments =  'unit test ZIP da REST'.
+    ENDIF.
+
     wa_inv_i = VALUE #(
          invoice = invoice Filenamepdf = lv_filename
          pdfdata = me->xcontent
          mimetypepdf = mime_type
-         comments = 'unit test PDF da REST' ).
+         comments = comments ).
 
-
-
-*    MOVE-CORRESPONDING wa_inv_i TO wa_inv_d.
-    wa_inv_d-hasactiveentity = abap_true.
-*
-*    MODIFY zmri_invoice FROM @wa_inv_i.
-*    MODIFY zmri_invoice_d FROM @wa_inv_d.
-*    COMMIT WORK.
+    CASE edocflow.
+      WHEN 'EDOCI'.
+        " -----  passivo
+        " -----
+        " -----  xml inbound
+        " -----  pdf inbound
+        " -----  zip manuale con XML
+        CASE abap_true.
+          WHEN xml.
+            wa_inv_i-inbound = abap_true.
+          WHEN pdf.
+            wa_inv_i-inbound = abap_true.
+          WHEN zip.
+*            wa_inv_i-inbound = abap_true.
+*        wa_inv_i-outbound = abap_true.
+*        wa_inv_i-from_edoc = abap_true.
+            wa_inv_i-manual_post = abap_true.
+        ENDCASE.
+      WHEN 'EDOCO'.
+        " ----- attivo
+        " -----
+        " ----- xml outbound from_edoc
+        " ----- pdf outbound
+        " ----- zip outbound
+        CASE abap_true.
+          WHEN xml.
+            wa_inv_i-outbound = abap_true.
+            wa_inv_i-from_edoc = abap_true.
+          WHEN pdf.
+            wa_inv_i-outbound = abap_true.
+          WHEN zip.
+*            wa_inv_i-inbound = abap_true.
+*        wa_inv_i-outbound = abap_true.
+*        wa_inv_i-from_edoc = abap_true.
+            wa_inv_i-outbound = abap_true.
+        ENDCASE.
+    ENDCASE.
 
     MOVE-CORRESPONDING wa_inv_i TO wa_inv_cds.
 
@@ -810,6 +883,10 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
                Pdfdata = if_abap_behv=>mk-on
                Mimetypepdf = if_abap_behv=>mk-on
                Comments = if_abap_behv=>mk-on
+               Inbound = if_abap_behv=>mk-on
+               Outbound = if_abap_behv=>mk-on
+               FromEdoc = if_abap_behv=>mk-on
+               ManualPost = if_abap_behv=>mk-on
                     ) ) )
     MAPPED DATA(edocu_mapped)
     FAILED DATA(edocu_failed)
@@ -909,6 +986,10 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   METHOD a_display_pdf.
   ENDMETHOD.
 
+  METHOD edoc_save_zip_db.
+
+
+  ENDMETHOD.
 
   METHOD edoc_save_pdf_db.
     FIELD-SYMBOLS: <file> TYPE  zoe_edocfile.
@@ -917,23 +998,34 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *    MODIFY zedoc_db FROM @me->buffer.
 *    MODIFY zoe_edocfile FROM @me->edocumentfile.
 
-   " agggiorno il record dell'XML PADRE sostituendo il contenuto di PDFDATA(copia di cortesia, se presente)
-   "  con il pdf ricevuto
+    " agggiorno il record dell'XML PADRE sostituendo il contenuto di PDFDATA(copia di cortesia, se presente)
+    "  con il pdf ricevuto
 
     buffer-unique_value = me->parent_edoc_guid.
     buffer-pdfdata = me->xcontent.
 
+    " inserisco il file PDF ricevuto nel file ZIP
+    DATA(lo_zip) = NEW cl_abap_zip( ).
+
+    lo_zip->load(
+   EXPORTING
+     zip             = buffer-zipdata    ).
+
+
+    lo_zip->add( name    = me->filename  content = me->xcontent ). " PDF
+    buffer-zipdata = lo_zip->save( ).
+
     update_entity_buffer( ).
 
     LOOP AT edocumentfile_t ASSIGNING <file>.
-" creo  il record in EDOCUMENTFILE con il pdf ricevuto
+      " creo  il record in EDOCUMENTFILE con il pdf ricevuto
       <file>-file_guid = me->parent_edoc_guid.
       <file>-zunique_value = me->parent_edoc_guid.
       <file>-seq_no = 1.
       <file>-pdfdata = me->xcontent.
     ENDLOOP.
 
-*** inserire PDF in file ZIP
+
 
     save_entity_edocufile( ).
 *    save_entity_edocument( ).
@@ -1055,6 +1147,59 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+  METHOD update_entity_edocument.
+
+    DATA: ls_edocument TYPE zr_oe_edocument.
+
+
+    LOOP AT edocument_t INTO edocument.
+
+      ls_edocument-UniqueValue = edocument-zunique_value.
+*      ls_edocument-SeqNo = edocument-seq_no.
+*      ls_edocument-Land = edocument-land.
+*      ls_edocument-FileGuid = edocument-file_guid.
+      ls_edocument-Status = edocument-status.
+      ls_edocument-Statusdescr = edocument-statusdescr.
+*      ls_edocument-Ernam = edocument-ernam.
+*      ls_edocument-Erdat = edocument-erdat.
+*      ls_edocument-Erzet = edocument-erzet.
+*      ls_edocument-Tmstp = edocument-tmstp.
+*      ls_edocument-Vatcode = edocument-vatcode.
+*      ls_edocument-Cedente = edocument-cedente.
+*      ls_edocument-DataFattura = edocument-data_fattura.
+*      ls_edocument-Importototaledocumento = edocument-importototaledocumento.
+
+
+      MODIFY ENTITIES OF zr_oe_edocument
+            ENTITY Edocument
+            UPDATE FROM VALUE #( (
+
+               %data = ls_edocument
+               %control = VALUE #(
+*                 unique_value = if_abap_behv=>mk-on
+*                 SeqNo = if_abap_behv=>mk-on
+*                   Bukrs = if_abap_behv=>mk-on
+*                 Land = if_abap_behv=>mk-on
+*                 FileGuid = if_abap_behv=>mk-on
+                 Status = if_abap_behv=>mk-on
+                 Statusdescr = if_abap_behv=>mk-on
+**                 Ernam = if_abap_behv=>mk-on
+*                 Erdat = if_abap_behv=>mk-on
+*                 Erzet = if_abap_behv=>mk-on
+*                 Tmstp = if_abap_behv=>mk-on
+*                 Vatcode = if_abap_behv=>mk-on
+*                 Cedente = if_abap_behv=>mk-on
+*                 DataFattura = if_abap_behv=>mk-on
+*                 Importototaledocumento = if_abap_behv=>mk-on
+   ) ) )
+      MAPPED DATA(edocu_mapped)
+      FAILED DATA(edocu_failed)
+      REPORTED DATA(edocu_reported).
+*      COMMIT ENTITIES.
+    ENDLOOP.
+
+  ENDMETHOD.
+
 
 
 
@@ -1109,6 +1254,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
   METHOD save_entity_edocufile.
     DATA: ls_edocfile TYPE zr_oe_edocfile.
 
@@ -1202,15 +1348,32 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   METHOD a_post.
 
 
+    me->edocument-zunique_value = me->edoc_guid.
     me->edocument-status = 2. " xml postato in SAP
     me->edocument-statusdescr = 'xml postato in SAP'.
-
+    APPEND me->edocument TO edocument_t.
+    me->update_entity_edocument( ).
 *    UPDATE zoe_edocument SET status = @me->edocument-status,
 *                           statusdescr = @me->edocument-statusdescr
 *                      WHERE zunique_value = @me->edocument-zunique_value.
 
   ENDMETHOD.
 
+  METHOD data_update.
+
+    me->edocflow = edocflow.
+    me->edoc_guid = edoc_guid.
+
+*    SELECT SINGLE * FROM zedoc_db WHERE edocflow = @edocflow and unique_value = @me->edoc_guid INTO @me->buffer .
+*    CHECK sy-subrc = 0.
+    SELECT SINGLE * FROM zoe_edocument  WHERE zunique_value = @me->edoc_guid INTO @me->edocument.
+*    SELECT SINGLE * FROM zoe_edocfile  WHERE file_guid = @me->edocument-file_guid INTO @me->edocumentfile.
+
+*    me->file_guid  = me->edocumentfile-file_guid.
+*    me->filename = me->edocumentfile-filename.
+*    me->xcontent = me->buffer-xmldata.
+
+  ENDMETHOD.
 
 
   METHOD data_init.
@@ -1334,9 +1497,10 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
     CASE  iv_action.
-      WHEN 'CREATE_FROM_REST' OR 'CREATE_PDF'.
-
+      WHEN 'CREATE_FROM_REST' OR 'CREATE_PDF' OR 'CREATE_ZIP'.
+        me->xml = abap_true.
         IF iv_action CS 'PDF'. me->pdf = abap_true. ENDIF.
+        IF iv_action CS 'ZIP'. me->zip = abap_true. ENDIF.
 
         CASE me->edocflow.
           WHEN 'EDOCI'.
@@ -1345,13 +1509,6 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
             a_create_from_rest_out( ).
         ENDCASE.
 
-*      WHEN 'CREATE_PDF'.
-*        CASE me->edocflow.
-*          WHEN 'EDOCI'.
-*            a_create_from_rest( pdf = abap_true ).
-*          WHEN 'EDOCO'.
-*            a_create_from_rest_out(  ).
-*        ENDCASE.
       WHEN 'CREATE_ZIP_OPEN '.
         a_CREATE_ZIP_OPEN( ) .
       WHEN 'CREATE_ZIP_CLOSE '.

@@ -6,15 +6,16 @@ CLASS zcl_zoe_dispatcher DEFINITION
     DATA pub_response TYPE string READ-ONLY .
     METHODS constructor
       IMPORTING
-        !iv_edoc_guid TYPE zunique_value OPTIONAL
-        !iv_edocflow  TYPE zedocflow DEFAULT 'EDOCI'
-        !is_new       TYPE abap_bool DEFAULT abap_true
-        !unit_test    TYPE abap_bool DEFAULT abap_true
-        !filename     TYPE string OPTIONAL
-        xcontent      TYPE zedoc_db-xmldata OPTIONAL
-        edocflow      TYPE zedoc_db-edocflow OPTIONAL
-        content       TYPE string OPTIONAL
-        invoice       TYPE zmri_invoice-invoice OPTIONAL
+        !iv_edoc_guid    TYPE zunique_value OPTIONAL
+        !iv_edocflow     TYPE zedocflow DEFAULT 'EDOCI'
+        !is_new          TYPE abap_bool DEFAULT abap_true
+        !unit_test       TYPE abap_bool DEFAULT abap_true
+        !filename        TYPE string OPTIONAL
+        xcontent         TYPE zedoc_db-xmldata OPTIONAL
+        edocflow         TYPE zedoc_db-edocflow OPTIONAL
+        content          TYPE string OPTIONAL
+        invoice          TYPE zmri_invoice-invoice OPTIONAL
+        update           TYPE string OPTIONAL
         parent_edoc_guid TYPE zunique_value OPTIONAL.
     METHODS execute_action
       IMPORTING
@@ -41,17 +42,21 @@ CLASS zcl_zoe_dispatcher IMPLEMENTATION.
   METHOD constructor.
     me->o_edoc = NEW zcl_zoe_edoc( ).
     me->edocflow  = edocflow.
-    IF me->edocflow IS INITIAL.
-      me->edocflow = 'EDOCI'.
-    ENDIF..
+*    IF me->edocflow IS INITIAL.
+*      me->edocflow = 'EDOCI'.
+*    ENDIF.
     me->content = xcontent.
     me->filename = filename.
     me->edoc_guid = iv_edoc_guid.
-    o_edoc->data_init(
-        xcontent = xcontent content = content edocflow = me->edocflow
-        edoc_guid = edoc_guid filename = filename invoice = invoice
-        parent_edoc_guid = parent_edoc_guid ) .
 
+    IF update IS INITIAL.
+      o_edoc->data_init(
+          xcontent = xcontent content = content edocflow = me->edocflow
+          edoc_guid = edoc_guid filename = filename invoice = invoice
+          parent_edoc_guid = parent_edoc_guid ) .
+    ELSE.
+      o_edoc->data_update( edocflow = me->edocflow edoc_guid = edoc_guid ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD execute_action.
