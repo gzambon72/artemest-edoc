@@ -14,6 +14,8 @@ CLASS zcl_zoe_edoc DEFINITION
     DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
     DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
     DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
+    DATA severity TYPE   if_abap_behv_message=>t_severity  READ-ONLY .
+    DATA action_text TYPE string READ-ONLY .
     DATA buffer TYPE zedoc_db.
     DATA buffer_t TYPE zedoc_db_t.
     METHODS constructor
@@ -66,7 +68,7 @@ CLASS zcl_zoe_edoc DEFINITION
     DATA xmlcontentraw TYPE string.
     DATA xml_header TYPE zoe_xml_data_extract.
     DATA edocflow TYPE zedocflow .
-
+    DATA no_commit TYPE abap_boolean.
   PRIVATE SECTION.
 
     METHODS xml_2_buffer .
@@ -78,33 +80,27 @@ CLASS zcl_zoe_edoc DEFINITION
 
     METHODS update_entity_edocument .
     METHODS update_entity_buffer .
-    METHODS edoc_save_2_db .
+    METHODS edoc_save_2_db IMPORTING no_commit TYPE abap_boolean DEFAULT abap_false.
     METHODS edoc_save_pdf_db .
-    METHODS edoc_save_zip_db .
+
 
 *** ACTION
     METHODS a_create .
     METHODS a_CREATE_PDF .
-    METHODS a_CREATE_ZIP_OPEN .
-    METHODS a_CREATE_ZIP_CLOSE .
+
     METHODS a_create_from_rest.
     METHODS a_create_from_rest_out .
-    METHODS a_create_from_invoice .
+    METHODS a_create_from_staging .
     METHODS a_create_invoice_staging
       IMPORTING mime_type TYPE string.
     METHODS a_create_invoice_staging_pdf .
     METHODS a_create_invoice_staging_xml .
     METHODS a_create_invoice_staging_zip .
-    METHODS a_create_invoice_o .
     METHODS a_create_from_invoice_rest .
-    METHODS a_create_from_invoice_rest_out.
-    METHODS a_display_pdf .
-    METHODS a_park .
+
+
     METHODS a_post .
     METHODS a_unit_test.
-
-    METHODS a_delete .
-
 
     METHODS data_init_for_test .
 
@@ -662,62 +658,17 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
   ENDMETHOD.
   METHOD a_CREATE_PDF .
     init_data_from_pdf( ).
+  ENDMETHOD.
 
-  ENDMETHOD.
-  METHOD a_CREATE_ZIP_OPEN .
-  ENDMETHOD.
-  METHOD a_CREATE_ZIP_CLOSE .
-  ENDMETHOD.
 
   METHOD a_create.
     init_data_from_xml( me->xmlcontentraw ).
-*    IF me->invoice IS INITIAL.
-
-*    ELSE.
-*      me->xml_2_buffer_from_invoice( ).
-*    ENDIF.
-
+    APPEND me->edocument TO me->edocument_t.
+    APPEND me->edocumentfile TO me->edocumentfile_t.
+    APPEND me->buffer TO me->buffer_t.
   ENDMETHOD.
   METHOD a_create_from_rest_out.
-    DATA lv_filename TYPE string.
-    DATA lv_zip TYPE xstring.
-    DATA xcontent TYPE xstring.
-    DATA wa_inv_i TYPE zmri_edoc_out.
-    DATA wa_inv_d TYPE zmri_edoc_out_d.
-    DATA wa_inv_cds TYPE zr_mri_edoc_out.
-
-*    CONSTANTS c_mime_zip TYPE string VALUE 'application/zip' .
-
-
-    DATA(invoice) = 'RESTXX_OUT-' && me->edoc_guid.
-
-*    DATA(lo_zip) = NEW cl_abap_zip( ).
-*
-*    lo_zip->add( name    = lv_filename content = me->xcontent ). "PDF
-*    lv_zip = lo_zip->save( ).
-
-    lv_zip = me->xcontent.
-
-    wa_inv_i = VALUE #(
-         invoice = invoice Filenamezip =  me->filename
-         zipdata = lv_zip
-         mimetypezip = c_mime_xml
-         comments = 'unit test da REST 01' ).
-
-
-    DELETE FROM zmri_edoc_out WHERE  local_created_by IS NULL.
-    DELETE FROM zmri_edoc_out_d WHERE hasactiveentity IS NULL.
-
-    MOVE-CORRESPONDING wa_inv_i TO wa_inv_d.
-    wa_inv_d-hasactiveentity = abap_true.
-
-    MODIFY zmri_edoc_out FROM @wa_inv_i.
-    MODIFY zmri_edoc_out_d FROM @wa_inv_d.
-    COMMIT WORK.
-
-    me->invoice = invoice.
-    me->a_create_from_invoice_rest_out(  ).
-
+    a_create_from_rest(  ).
   ENDMETHOD.
   METHOD a_create_from_rest.
 
@@ -726,7 +677,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     CASE abap_true.
       WHEN xml.
         me->a_create_invoice_staging_xml( ).
-        me->a_create_from_invoice_rest(  ).
+        me->a_create(  ).
+        me->edoc_save_2_db( ).
       WHEN pdf.
         init_data_from_pdf( ).
         me->a_create_invoice_staging_pdf( ).
@@ -754,27 +706,12 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
   ENDMETHOD.
-  METHOD a_create_from_invoice_rest_out.
-    DATA s_invoice TYPE zmri_edoc_out.
 
-    SELECT SINGLE * FROM zmri_edoc_out
-      WHERE invoice = @me->invoice
-       INTO @s_invoice.
+  METHOD a_create_from_invoice_rest.
 
+*    a_create_from_invoice( ).
+*    me->edoc_save_2_db( ).
 
-    DATA(lv_string) = xco_cp=>xstring( s_invoice-zipdata
-          )->as_string( xco_cp_character=>code_page->utf_8
-          )->value.
-
-    me->xmlcontentraw = lv_string.
-    CLEAR me->invoice.
-    init_data_from_xml( me->xmlcontentraw ).
-
-    APPEND me->edocument TO me->edocument_t.
-    APPEND me->edocumentfile TO me->edocumentfile_t.
-    APPEND me->buffer TO me->buffer_t.
-
-    me->edoc_save_2_db( ).
   ENDMETHOD.
   METHOD a_create_invoice_staging_xml .
     a_create_invoice_staging(  c_mime_xml ).
@@ -848,13 +785,15 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
         CASE abap_true.
           WHEN xml.
             wa_inv_i-inbound = abap_true.
+            wa_inv_i-outbound = abap_false.
           WHEN pdf.
             wa_inv_i-inbound = abap_true.
+            wa_inv_i-outbound = abap_false.
           WHEN zip.
-*            wa_inv_i-inbound = abap_true.
-*        wa_inv_i-outbound = abap_true.
+            wa_inv_i-inbound = abap_true.
+            wa_inv_i-outbound = abap_false.
 *        wa_inv_i-from_edoc = abap_true.
-            wa_inv_i-manual_post = abap_true.
+            wa_inv_i-manual_post = abap_false.
         ENDCASE.
       WHEN 'EDOCO'.
         " ----- attivo
@@ -869,9 +808,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
           WHEN pdf.
             wa_inv_i-outbound = abap_true.
           WHEN zip.
-*            wa_inv_i-inbound = abap_true.
-*        wa_inv_i-outbound = abap_true.
-*        wa_inv_i-from_edoc = abap_true.
+            wa_inv_i-inbound = abap_false.
+            wa_inv_i-from_edoc = abap_true.
             wa_inv_i-outbound = abap_true.
         ENDCASE.
     ENDCASE.
@@ -889,8 +827,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
                Pdfdata = if_abap_behv=>mk-on
                Mimetypepdf = if_abap_behv=>mk-on
                Comments = if_abap_behv=>mk-on
-               inbound = if_abap_behv=>mk-on
-               outbound = if_abap_behv=>mk-on
+               Inbound = if_abap_behv=>mk-on
+               Outbound = if_abap_behv=>mk-on
                FromEdoc = if_abap_behv=>mk-on
                ManualPost = if_abap_behv=>mk-on
                     ) ) )
@@ -904,21 +842,15 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     me->invoice = invoice.
   ENDMETHOD.
 
-  METHOD a_create_invoice_o .
-  ENDMETHOD.
 
-  METHOD a_create_from_invoice_rest.
 
-    a_create_from_invoice( ).
-    me->edoc_save_2_db( ).
-
-  ENDMETHOD.
-  METHOD a_create_from_invoice.
+  METHOD a_create_from_staging.
 
     DATA lo_zip  TYPE REF TO cl_abap_zip.
     DATA xml_filename TYPE string.
     DATA i_zip  TYPE xstring.
     DATA s_invoice TYPE zoe_staging_file.
+    DATA allowed TYPE abap_boolean.
 
     SELECT SINGLE * FROM zoe_staging_file
       WHERE invoice = @me->invoice
@@ -926,76 +858,74 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     CLEAR me->invoice.
 
-    IF s_invoice-mimetypepdf CS 'xml'.
 
-      DATA(lv_string_xml) = xco_cp=>xstring( s_invoice-pdfdata
-                  )->as_string( xco_cp_character=>code_page->utf_8
-                  )->value.
-      me->xmlcontentraw = lv_string_xml.
-
-      init_data_from_xml( me->xmlcontentraw ).
-      APPEND me->edocument TO me->edocument_t.
-      APPEND me->edocumentfile TO me->edocumentfile_t.
-      APPEND me->buffer TO me->buffer_t.
+    IF s_invoice-mimetypepdf CS 'zip' AND s_invoice-outbound = abap_false.
+      allowed = abap_true.
     ELSE.
-
-      i_zip = s_invoice-pdfdata.
-
-      lo_zip = NEW cl_abap_zip( ).
-      lo_zip->load(
-      EXPORTING
-        zip             = i_zip   ).
-
-      "Ottiene lista dei files
-      DATA lt_files TYPE lo_zip->t_files.
-
-      DATA lt_files_xml TYPE lo_zip->t_files.
-      DATA file TYPE lo_zip->t_file.
-
-      lt_files = lo_zip->files.
-
-      LOOP AT lt_files INTO file.
-        IF file-name CS 'XML'.
-          xml_filename = file-name.
-
-
-          lo_zip->get( EXPORTING  name = xml_filename
-        IMPORTING content = DATA(lv_content) ).
-
-          DATA(lv_string) = xco_cp=>xstring( lv_content
-                )->as_string( xco_cp_character=>code_page->utf_8
-                )->value.
-
-          me->filename = xml_filename.
-          me->xmlcontentraw = lv_string.
-          init_data_from_xml( me->xmlcontentraw ).
-          APPEND me->edocument TO me->edocument_t.
-          APPEND me->edocumentfile TO me->edocumentfile_t.
-          APPEND me->buffer TO me->buffer_t.
-        ENDIF.
-      ENDLOOP.
+      me->severity = if_abap_behv_message=>severity-error.
+      me->action_text = 'File e Processo NON VALIDO per il POST'.
+      allowed = abap_false.
+*      DATA(lv_string_xml) = xco_cp=>xstring( s_invoice-pdfdata
+*    )->as_string( xco_cp_character=>code_page->utf_8
+*    )->value.
+*      me->xmlcontentraw = lv_string_xml.
+*        init_data_from_xml( me->xmlcontentraw ).
+*        APPEND me->edocument TO me->edocument_t.
+*        APPEND me->edocumentfile TO me->edocumentfile_t.
+*        APPEND me->buffer TO me->buffer_t.
     ENDIF.
+
+    CHECK allowed = abap_true.
+
+    i_zip = s_invoice-pdfdata.
+
+    lo_zip = NEW cl_abap_zip( ).
+    lo_zip->load(
+    EXPORTING
+      zip             = i_zip   ).
+
+    "Ottiene lista dei files
+    DATA lt_files TYPE lo_zip->t_files.
+
+    DATA lt_files_xml TYPE lo_zip->t_files.
+    DATA file TYPE lo_zip->t_file.
+
+    lt_files = lo_zip->files.
+
+    LOOP AT lt_files INTO file.
+      IF file-name CS 'XML'.
+        xml_filename = file-name.
+
+
+        lo_zip->get( EXPORTING  name = xml_filename
+      IMPORTING content = DATA(lv_content) ).
+
+        DATA(lv_string) = xco_cp=>xstring( lv_content
+              )->as_string( xco_cp_character=>code_page->utf_8
+              )->value.
+
+        me->filename = xml_filename.
+        me->xmlcontentraw = lv_string.
+        me->xcontent = lv_string.
+        me->a_create(  ).
+        me->severity = if_abap_behv_message=>severity-success.
+
+        me->edoc_save_2_db( no_commit = abap_true ).
+        me->action_text = 'Record Salvato in OCRA EDOCUMENT'.
+
+*        init_data_from_xml( me->xmlcontentraw ).
+*        APPEND me->edocument TO me->edocument_t.
+*        APPEND me->edocumentfile TO me->edocumentfile_t.
+*        APPEND me->buffer TO me->buffer_t.
+      ENDIF.
+    ENDLOOP.
+
+*    me->severity = if_abap_behv_message=>severity-success.
+*
+*    me->action_text = 'Record Salvato in OCRA EDOCUMENT'.
+
   ENDMETHOD.
 
-  METHOD a_delete.
-
-    DELETE zoe_edocument FROM @me->edocument.
-
-    DELETE zoe_edocfile FROM @me->edocumentfile.
-
-    DELETE zedoc_db FROM @me->buffer.
-
-  ENDMETHOD.
-
-
-
-  METHOD a_display_pdf.
-  ENDMETHOD.
-
-  METHOD edoc_save_zip_db.
-
-
-  ENDMETHOD.
 
   METHOD edoc_save_pdf_db.
     FIELD-SYMBOLS: <file> TYPE  zoe_edocfile.
@@ -1149,7 +1079,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
         MAPPED DATA(edocdb_mapped)
         FAILED DATA(edocdb_failed)
         REPORTED DATA(edocdb_reported).
-      COMMIT ENTITIES.
+      IF no_commit = abap_false.
+        COMMIT ENTITIES.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1201,7 +1133,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
       MAPPED DATA(edocu_mapped)
       FAILED DATA(edocu_failed)
       REPORTED DATA(edocu_reported).
-*      COMMIT ENTITIES.
+      IF no_commit = abap_false.
+        COMMIT ENTITIES.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1256,7 +1190,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
       MAPPED DATA(edocu_mapped)
       FAILED DATA(edocu_failed)
       REPORTED DATA(edocu_reported).
-      COMMIT ENTITIES.
+      IF no_commit = abap_false.
+        COMMIT ENTITIES.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1320,7 +1256,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *
 *        RETURN.
 *      ENDIF.
-      COMMIT ENTITIES.
+      IF no_commit = abap_false.
+        COMMIT ENTITIES.
+      ENDIF.
 *      " Messaggio di successo
 *      APPEND VALUE #( %msg = new_message_with_text(
 *                       severity = if_abap_behv_message=>severity-success
@@ -1339,14 +1277,16 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 *
 *    MODIFY zoe_edocfile FROM @me->edocumentfile.
 
+    CHECK me->severity NE if_abap_behv_message=>severity-error.
+
+    me->no_commit = no_commit.
     save_entity_buffer( ).
     save_entity_edocufile( ).
     save_entity_edocument( ).
 
   ENDMETHOD.
 
-  METHOD a_park.
-  ENDMETHOD.
+
 
   METHOD a_unit_test.
     me->data_init_for_test(  ).
@@ -1358,6 +1298,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     me->edocument-status = 2. " xml postato in SAP
     me->edocument-statusdescr = 'xml postato in SAP'.
     APPEND me->edocument TO edocument_t.
+    no_commit = abap_true.
     me->update_entity_edocument( ).
 *    UPDATE zoe_edocument SET status = @me->edocument-status,
 *                           statusdescr = @me->edocument-statusdescr
@@ -1413,10 +1354,10 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
   METHOD  data_init_for_test.
 
-    DELETE FROM zedoc_db.
-    DELETE FROM zoe_edocument.
-    DELETE FROM zoe_edocfile.
-    DELETE FROM zoe_staging_file .
+*    DELETE FROM zedoc_db.
+*    DELETE FROM zoe_edocument.
+*    DELETE FROM zoe_edocfile.
+*    DELETE FROM zoe_staging_file .
 
 
 
@@ -1515,30 +1456,26 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
           WHEN 'EDOCO'.
             a_create_from_rest_out( ).
         ENDCASE.
-
-      WHEN 'CREATE_ZIP_OPEN '.
-        a_CREATE_ZIP_OPEN( ) .
-      WHEN 'CREATE_ZIP_CLOSE '.
-        a_CREATE_ZIP_CLOSE( ) .
-
       WHEN 'CREATE'.
-        IF invoice IS INITIAL.
-          a_create( ).
-        ELSE.
-          a_create_from_invoice( ).
-        ENDIF.
-      WHEN 'DELETE'.
-        a_delete( ).
-      WHEN 'DISPLAY_PDF'.
-        a_display_pdf( ).
-      WHEN 'IV_PARK'.
-        a_park( ).
+        a_create( ).
+      WHEN 'POST_FROM_STAGING'.
+        a_create_from_staging( ).
       WHEN 'IV_POST'  .
         a_post( ).
       WHEN 'CREATE_UNIT_TEST'.
         a_unit_test( ).
+
     ENDCASE.
+
+*                WHEN 'DELETE'.
+*                  a_delete( ).
+*                WHEN 'DISPLAY_PDF'.
+*                  a_display_pdf( ).
+*                WHEN 'IV_PARK'.
+*                  a_park( ).
+*                WHEN 'CREATE_ZIP_OPEN '.
+*                  a_CREATE_ZIP_OPEN( ) .
+*                WHEN 'CREATE_ZIP_CLOSE '.
+*                  a_CREATE_ZIP_CLOSE( ) .
   ENDMETHOD.
-
-
 ENDCLASS.

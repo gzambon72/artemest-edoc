@@ -8,8 +8,11 @@ CLASS zcl_zoe_dispatcher_rest DEFINITION
     DATA edocument_t TYPE zoe_Edocument_t READ-ONLY.
     DATA edocumentfile TYPE zoe_edocfile READ-ONLY .
     DATA edocumentfile_t TYPE zoe_edocfile_t READ-ONLY.
-    DATA buffer TYPE zedoc_db.
-    DATA buffer_t TYPE zedoc_db_t.
+    DATA buffer TYPE zedoc_db READ-ONLY.
+    DATA buffer_t TYPE zedoc_db_t READ-ONLY.
+    DATA severity type   IF_ABAP_BEHV_MESSAGE=>T_SEVERITY  READ-ONLY .
+    DATA action_text TYPE string READ-ONLY .
+    .
     METHODS constructor
       IMPORTING
         VALUE(request)  TYPE REF TO if_web_http_request
@@ -57,13 +60,15 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
     I_parent_edoc_guid = parent_edoc_guid.
 
     DATA(lv_request_body) =  request->get_text( ).
+    DATA(i_edoc_flow) = request->get_header_field( 'edoc_flow' ).
 
+    edocflow = i_edoc_flow.
 *    DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
     DATA i_edoc_guid TYPE zunique_value.
     TRANSLATE path_info TO UPPER CASE .
     CASE  path_info.
       WHEN 'EDOCI_CREATE'.
-        edocflow = 'EDOCI'.
+*        edocflow = 'EDOCI'.
         CASE content_type.
           WHEN c_mime_xml.
             action =  'EDOCI_CREATE'.
@@ -73,7 +78,7 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
             action =  'EDOCI_CREATE_ZIP'.
         ENDCASE.
       WHEN 'EDOCO_CREATE'.
-        edocflow = 'EDOCO'.
+*        edocflow = 'EDOCO'.
         CASE content_type.
           WHEN c_mime_xml.
             action =  'EDOCO_CREATE'.
@@ -169,6 +174,8 @@ CLASS zcl_zoe_dispatcher_rest IMPLEMENTATION.
 
     ENDCASE.
 
+    severity = o_dispatcher->severity.
+    action_text = o_dispatcher->action_text.
 
     IF  o_dispatcher->pub_response IS INITIAL.
       response->set_text( '<h1>CREATE_UNIT_TEST ---> SUCCESS<h1>' ).

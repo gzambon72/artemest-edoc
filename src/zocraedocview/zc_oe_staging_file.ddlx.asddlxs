@@ -99,7 +99,45 @@ annotate view ZC_OE_STAGING_FILE with
     position: 70 
   } ]
   FromEdoc;
-  
+  @EndUserText.label: 'Inbound'
+  @UI.identification: [ {
+    position: 70 , 
+    label: 'Inbound'
+  } ]
+  @UI.lineItem: [ {
+    position: 70 , 
+    label: 'Inbound'
+  } ]
+  @UI.selectionField: [ {
+    position: 70 
+  } ]
+  Inbound;  
+  @EndUserText.label: 'Outbound'
+  @UI.identification: [ {
+    position: 70 , 
+    label: 'Outbound'
+  } ]
+  @UI.lineItem: [ {
+    position: 70 , 
+    label: 'Outbound'
+  } ]
+  @UI.selectionField: [ {
+    position: 70 
+  } ]
+  Outbound;  
+  @EndUserText.label: 'Manual'
+  @UI.identification: [ {
+    position: 70 , 
+    label: 'Manual'
+  } ]
+  @UI.lineItem: [ {
+    position: 70 , 
+    label: 'Manual'
+  } ]
+  @UI.selectionField: [ {
+    position: 70 
+  } ]
+  ManualPost;    
   @UI.identification: [ {
     position: 80 
   } ]

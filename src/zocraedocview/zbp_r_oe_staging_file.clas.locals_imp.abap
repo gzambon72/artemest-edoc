@@ -1,5 +1,6 @@
-CLASS LHC_ZR_OE_STAGING_FILE DEFINITION INHERITING FROM CL_ABAP_BEHAVIOR_HANDLER.
+CLASS lhc_zr_oe_staging_file DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
+
     DATA o_dispatcher TYPE REF TO zcl_zoe_dispatcher.
     METHODS get_instance_features FOR INSTANCE FEATURES IMPORTING keys REQUEST requested_features FOR Staging RESULT result.
     METHODS:
@@ -12,7 +13,7 @@ CLASS LHC_ZR_OE_STAGING_FILE DEFINITION INHERITING FROM CL_ABAP_BEHAVIOR_HANDLER
         IMPORTING keys FOR ACTION Staging~document_post  RESULT result.
 ENDCLASS.
 
-CLASS LHC_ZR_OE_STAGING_FILE IMPLEMENTATION.
+CLASS lhc_zr_oe_staging_file IMPLEMENTATION.
   METHOD get_global_authorizations.
   ENDMETHOD.
   METHOD get_instance_features.
@@ -20,14 +21,27 @@ CLASS LHC_ZR_OE_STAGING_FILE IMPLEMENTATION.
   METHOD document_post.
 
     LOOP AT keys INTO DATA(key).
+
       o_dispatcher = NEW zcl_zoe_dispatcher( invoice = key-Invoice ).
-      o_dispatcher->execute_action(  'POST_FROM_IMVOICE' ).
+      o_dispatcher->execute_action(  'POST_FROM_STAGING' ).
+
+      DATA(severity) = o_dispatcher->severity.
+      DATA(action_text) = o_dispatcher->action_text.
+
       FREE o_dispatcher.
 
-      READ ENTITIES OF ZR_OE_STAGING_FILE IN LOCAL MODE
+      READ ENTITIES OF zr_oe_staging_file IN LOCAL MODE
        ENTITY Staging
-       ALL FIELDS WITH CORRESPONDING #( keys )
-       RESULT DATA(Stagings).
+       FROM VALUE #( ( Invoice = keys[ 1 ]-Invoice ) )
+       RESULT DATA(staging)
+       FAILED DATA(staiging_failed)
+       REPORTED DATA(staging_reported).
+
+      APPEND VALUE #( %msg = new_message_with_text(
+                       severity = severity
+                       text     = action_text
+                     ) ) TO reported-staging.
+
     ENDLOOP.
   ENDMETHOD.
 ENDCLASS.

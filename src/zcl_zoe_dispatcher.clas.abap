@@ -4,6 +4,8 @@ CLASS zcl_zoe_dispatcher DEFINITION
 
   PUBLIC SECTION.
     DATA pub_response TYPE string READ-ONLY .
+    DATA severity type   IF_ABAP_BEHV_MESSAGE=>T_SEVERITY  READ-ONLY .
+    DATA action_text TYPE string READ-ONLY .
     METHODS constructor
       IMPORTING
         !iv_edoc_guid    TYPE zunique_value OPTIONAL
@@ -61,12 +63,19 @@ CLASS zcl_zoe_dispatcher IMPLEMENTATION.
 
   METHOD execute_action.
     o_edoc->execute_action(  iv_action ).
+
     edocument = o_edoc->edocument.
     edocumentfile = o_edoc->edocumentfile.
     buffer = o_edoc->buffer.
+
     edocument_t = o_edoc->edocument_t.
     edocumentfile_t = o_edoc->edocumentfile_t.
     buffer_t = o_edoc->buffer_t.
+
     pub_response = o_edoc->pub_response.
+
+    severity = o_edoc->severity.
+    action_text = o_edoc->action_text.
+
   ENDMETHOD.
 ENDCLASS.
