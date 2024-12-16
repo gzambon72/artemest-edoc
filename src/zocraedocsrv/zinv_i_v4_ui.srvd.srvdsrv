@@ -1,5 +1,5 @@
 @EndUserText.label: 'V4_WEB'
 define service ZINV_I_V4_UI
   provider contracts odata_v4_ui {
-  expose ZC_MRI_INVOICE001 as Invoice;
+  expose ZC_OE_STAGING_FILE as Staging;
 }

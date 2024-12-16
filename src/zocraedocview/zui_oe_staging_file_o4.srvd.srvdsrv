@@ -1,0 +1,11 @@
+@EndUserText: {
+  label: 'Service Definition for ZC_OE_STAGING_FILE'
+}
+@ObjectModel: {
+  leadingEntity: {
+    name: 'ZC_OE_STAGING_FILE'
+  }
+}
+define service ZUI_OE_STAGING_FILE_O4 provider contracts odata_v4_ui {
+  expose ZC_OE_STAGING_FILE as Staging;
+}

@@ -1,17 +1,16 @@
 @Metadata.allowExtensions: true
 @EndUserText.label: '###GENERATED Core Data Service Entity'
 @AccessControl.authorizationCheck: #CHECK
-define root view entity ZC_MRI_INVOICE001
-  provider contract  transactional_query
-  as projection on ZR_MRI_INVOICE001
+define root view entity ZC_OE_STAGING_FILE
+  provider contract transactional_query
+  as projection on ZR_OE_STAGING_FILE
 {
   key Invoice,
       Comments,
-      @EndUserText.label : 'MIME Type ZIP'
+      @EndUserText.label : 'MIME Type'
       Mimetypepdf,
-      ///// PDF /////
       @Consumption.semanticObject: 'Document'
-      @EndUserText.label : 'ZIP Filename'
+      @EndUserText.label : 'Filename'
       Filenamepdf,
       @Semantics.largeObject:
              {
@@ -22,16 +21,16 @@ define root view entity ZC_MRI_INVOICE001
                                                            }
       @EndUserText.label : 'Content'
       Pdfdata,
-      //      Purchaseorder,
-      //      Price,
+      //  Purchaseorder,
+      //  Price,
+      FromEdoc,
+      Inbound,
+      Outbound,
+      ManualPost,
       LocalCreatedBy,
       LocalCreatedAt,
       LocalLastChangedBy,
       LocalLastChangedAt,
-      LastChangedAt,
-      FromEdoc,
-      Inbound,
-      Outbound,
-      ManualPost
+      LastChangedAt
 
 }

@@ -786,14 +786,14 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     a_create_invoice_staging(  c_mime_zip ).
   ENDMETHOD.
   METHOD a_create_invoice_staging.
-** save invoice in ZMRI_INVOICE
+** save invoice in ZOE_STAGING_FILE
     DATA lv_filename TYPE string.
     DATA lv_zip TYPE xstring.
     DATA xcontent TYPE xstring.
-    DATA wa_inv_i TYPE zmri_invoice.
-    DATA wa_inv_d TYPE zmri_invoice_d.
-    DATA wa_inv_cds TYPE zr_mri_invoice001.
-    DATA comments TYPE zmri_invoice-comments.
+    DATA wa_inv_i TYPE zoe_staging_file.
+*    DATA wa_inv_d TYPE zmri_invoice_d.
+    DATA wa_inv_cds TYPE zr_oe_staging_file.
+    DATA comments TYPE zr_oe_staging_file-comments.
 
 
     DATA(unique_value) = cl_system_uuid=>create_uuid_c36_static( )  .
@@ -804,7 +804,13 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     lv_filename  = me->filename.
 
     " *** xml ***
-    comments =  'unit test XML da REST'.
+    CASE abap_true.
+      WHEN xml.  comments =  'unit test XML da REST'.
+      WHEN pdf.  comments =  'unit test PDF da REST'.
+      WHEN zip.  comments =  'unit test ZIP da REST'.
+    ENDCASE.
+
+
 
     IF pdf = abap_true.
       DATA pdf_base64_x_decoded TYPE xstring.
@@ -813,7 +819,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
           RESULT pdf = pdf_base64_x_decoded.
 
       me->xcontent = pdf_base64_x_decoded.
-      comments =  'unit test PDF da REST'.
+
     ENDIF.
 
     IF zip = abap_true.
@@ -823,7 +829,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
           RESULT pdf = zip_base64_x_decoded.
 
       me->xcontent = zip_base64_x_decoded.
-      comments =  'unit test ZIP da REST'.
+
     ENDIF.
 
     wa_inv_i = VALUE #(
@@ -872,8 +878,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     MOVE-CORRESPONDING wa_inv_i TO wa_inv_cds.
 
-    MODIFY ENTITIES OF zr_mri_invoice001
-          ENTITY Invoice
+    MODIFY ENTITIES OF zr_oe_staging_file
+          ENTITY Staging
           CREATE FROM VALUE #( (
              %cid = 'CID_CREATE_EDOC'
              %data = wa_inv_cds
@@ -883,8 +889,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
                Pdfdata = if_abap_behv=>mk-on
                Mimetypepdf = if_abap_behv=>mk-on
                Comments = if_abap_behv=>mk-on
-               Inbound = if_abap_behv=>mk-on
-               Outbound = if_abap_behv=>mk-on
+               inbound = if_abap_behv=>mk-on
+               outbound = if_abap_behv=>mk-on
                FromEdoc = if_abap_behv=>mk-on
                ManualPost = if_abap_behv=>mk-on
                     ) ) )
@@ -912,9 +918,9 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     DATA lo_zip  TYPE REF TO cl_abap_zip.
     DATA xml_filename TYPE string.
     DATA i_zip  TYPE xstring.
-    DATA s_invoice TYPE zmri_invoice.
+    DATA s_invoice TYPE zoe_staging_file.
 
-    SELECT SINGLE * FROM zmri_invoice
+    SELECT SINGLE * FROM zoe_staging_file
       WHERE invoice = @me->invoice
        INTO @s_invoice.
 
@@ -1028,7 +1034,7 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
 
     save_entity_edocufile( ).
-*    save_entity_edocument( ).
+
   ENDMETHOD.
   METHOD update_entity_buffer.
     LOOP AT buffer_t INTO buffer.
@@ -1410,8 +1416,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
     DELETE FROM zedoc_db.
     DELETE FROM zoe_edocument.
     DELETE FROM zoe_edocfile.
-    DELETE FROM zmri_invoice .
-    DELETE FROM zmri_invoice_d .
+    DELETE FROM zoe_staging_file .
+
 
 
     DATA flow TYPE TABLE OF zedoc_flow.
@@ -1498,7 +1504,8 @@ CLASS zcl_zoe_edoc IMPLEMENTATION.
 
     CASE  iv_action.
       WHEN 'CREATE_FROM_REST' OR 'CREATE_PDF' OR 'CREATE_ZIP'.
-        me->xml = abap_true.
+
+        IF iv_action CS 'REST'. me->xml = abap_true. ENDIF.
         IF iv_action CS 'PDF'. me->pdf = abap_true. ENDIF.
         IF iv_action CS 'ZIP'. me->zip = abap_true. ENDIF.
 

@@ -1,0 +1,159 @@
+@Metadata.layer: #CORE
+@UI.headerInfo.title.type: #STANDARD
+@UI.headerInfo.title.value: 'Invoice'
+@UI.headerInfo.description.type: #STANDARD
+@UI.headerInfo.description.value: 'Invoice'
+annotate view ZC_OE_STAGING_FILE with
+{
+  @UI.facet: [ {
+    label: 'General Information', 
+    id: 'GeneralInfo', 
+    purpose: #STANDARD, 
+    position: 10 , 
+    type: #IDENTIFICATION_REFERENCE
+  }, {
+          id: 'ZIPContent',
+          purpose: #STANDARD,
+          type: #FIELDGROUP_REFERENCE,
+          label: 'ZIP Content',
+          position: 30,
+          targetQualifier: 'ZIPContent'
+      } ]
+  @UI.identification: [ {
+    position: 10 
+  } ]
+  @UI.lineItem: [ {
+    position: 10 
+  },
+  { type: #FOR_ACTION, dataAction: 'document_post', label: 'Send Document to SAP OCRA Edocument', position: 3 } ]
+  @UI.selectionField: [ {
+    position: 10 
+  }]
+  @EndUserText.label: 'File'
+  Invoice;
+  
+  @EndUserText.label: 'Comments'
+  @UI.identification: [ {
+    position: 20 , 
+    label: 'Comments'
+  } ]
+  @UI.lineItem: [ {
+    position: 20 , 
+    label: 'Comments'
+  } ]
+  @UI.selectionField: [ {
+    position: 20 
+  } ]
+  Comments;
+  
+  @EndUserText.label: 'Mimetype'
+  @UI.identification: [ {
+    position: 30 , 
+    label: 'Mimetype'
+  } ]
+  @UI.lineItem: [ {
+    position: 30 , 
+    label: 'Mimetype'
+  } ]
+  @UI.selectionField: [ {
+    position: 30 
+  } ]
+  
+  Mimetypepdf;
+  
+  @EndUserText.label: 'Filename'
+  @UI.identification: [ {
+    position: 40 , 
+    label: 'Filename'
+  } ]
+ 
+  @UI.selectionField: [ {
+    position: 40 
+  } ]
+ 
+  Filenamepdf;
+  
+  @EndUserText.label: 'Filename'
+  @UI.identification: [ {
+    position: 50 , 
+    label: 'Filename'
+  } ]
+  @UI.lineItem: [ {
+    position: 50 , 
+    label: 'Filename'
+  } ]
+  @UI.fieldGroup: [{ position: 10, qualifier: 'ZIPContent', label: 'Content' }]
+  Pdfdata;
+ 
+  
+  @EndUserText.label: 'FromEdoc'
+  @UI.identification: [ {
+    position: 70 , 
+    label: 'FromEdoc'
+  } ]
+  @UI.lineItem: [ {
+    position: 70 , 
+    label: 'FromEdoc'
+  } ]
+  @UI.selectionField: [ {
+    position: 70 
+  } ]
+  FromEdoc;
+  
+  @UI.identification: [ {
+    position: 80 
+  } ]
+  @UI.lineItem: [ {
+    position: 80 
+  } ]
+  @UI.selectionField: [ {
+    position: 80 
+  } ]
+  LocalCreatedBy;
+  
+  @UI.identification: [ {
+    position: 90 
+  } ]
+  @UI.lineItem: [ {
+    position: 90 
+  } ]
+  @UI.selectionField: [ {
+    position: 90 
+  } ]
+  LocalCreatedAt;
+  
+  @UI.identification: [ {
+    position: 100 
+  } ]
+  @UI.lineItem: [ {
+    position: 100 
+  } ]
+  @UI.selectionField: [ {
+    position: 100 
+  } ]
+  LocalLastChangedBy;
+  
+  @UI.identification: [ {
+    position: 110 
+  } ]
+  @UI.lineItem: [ {
+    position: 110 
+  } ]
+  @UI.selectionField: [ {
+    position: 110 
+  } ]
+  LocalLastChangedAt;
+  
+  @UI.identification: [ {
+    position: 120 
+  } ]
+  @UI.lineItem: [ {
+    position: 120 
+  } ]
+  @UI.selectionField: [ {
+    position: 120 
+  } ]
+  LastChangedAt;
+
+ 
+}
